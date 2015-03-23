@@ -1,0 +1,30 @@
+{
+    "name": "jasonhofer/develpup-oci",
+    "type": "library",
+    "description": "A very lightweight wrapper around the PHP OCI8 extension.",
+    "keywords": [],
+    "homepage": "https://www.github.com/jasonhofer/develpup-oci",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Jason Hofer",
+            "email": "jason.hofer@gmail.com"
+        }
+    ],
+    "require": {
+        "php": ">=5.2",
+        "ext-oci8": "*"
+    },
+    "require-dev": {
+        "ext-PDO_OCI": "*",
+        "phpunit/phpunit": "~4.5",
+        "phpunit/dbunit": "~1.3",
+        "phpunit/phpunit-mock-objects": "~2.3",
+        "phpunit/phpunit-skeleton-generator": "~2.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "Develpup\\Oci\\": "src/"
+        }
+    }
+}
