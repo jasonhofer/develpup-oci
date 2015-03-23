@@ -14,6 +14,14 @@ namespace Develpup\Oci;
 /**
  * Class OciParameter
  *
+ * OciStatement::bind() returns an OciParameter:
+ * <code>
+ * $stmt->bind('name')->toVal('John')->asString();
+ * $stmt->bind('age')->toVal(42)->asInt();
+ * $stmt->bind('new_id')->toOutVar($newId)->asInt();
+ * $stmt->bind('results')->toVar($results)->asCursor();
+ * </code>
+ *
  * @package Develpup\Oci
  * @author  Jason Hofer <jason.hofer@gmail.com>
  * 2015-03-22 7:40 PM
@@ -25,21 +33,46 @@ class OciParameter
      */
     protected $statement;
 
+    /**
+     * @var string
+     */
     protected $name;
+
+    /**
+     * @var mixed
+     */
     protected $value = null;
+
+    /**
+     * @var int
+     */
     protected $type;
-    protected $length = -1;
+
+    /**
+     * @var int
+     */
+    protected $maxLength = -1;
+
+    /**
+     * @var bool
+     */
     protected $output = false;
 
     /**
      * @param OciStatement $statement
+     * @param string       $name
      */
     public function __construct(OciStatement $statement, $name)
     {
         $this->statement = $statement;
-        $this->name      = $name;
+        $this->name      = (string) $name;
     }
 
+    /**
+     * @param mixed $val
+     *
+     * @return $this
+     */
     public function toVal($val)
     {
         $this->value = $val;
@@ -47,21 +80,36 @@ class OciParameter
         return $this;
     }
 
+    /**
+     * @param mixed &$var
+     *
+     * @return $this
+     */
     public function toVar(&$var)
     {
-        $this->value = $var;
+        $this->value = &$var;
 
         return $this;
     }
 
-    public function toOutVar(&$var)
+    /**
+     * @param null &$var
+     * @param int  $maxLength
+     *
+     * @return $this
+     */
+    public function toOutVar(&$var, $maxLength = -1)
     {
-        $this->value  = $var;
-        $this->output = true;
+        $this->value     = &$var;
+        $this->maxLength = (int) $maxLength;
+        $this->output    = true;
 
         return $this;
     }
 
+    /**
+     * @return $this
+     */
     public function asString()
     {
         $this->setType(SQLT_CHR);
@@ -69,6 +117,9 @@ class OciParameter
         return $this;
     }
 
+    /**
+     * @return $this
+     */
     public function asInt()
     {
         $this->setType(OCI_B_INT);
@@ -76,6 +127,9 @@ class OciParameter
         return $this;
     }
 
+    /**
+     * @return $this
+     */
     public function asLong()
     {
         $this->setType(SQLT_LNG);
@@ -83,6 +137,9 @@ class OciParameter
         return $this;
     }
 
+    /**
+     * @return $this
+     */
     public function asClob()
     {
         $this->setType(OCI_B_CLOB);
@@ -90,6 +147,9 @@ class OciParameter
         return $this;
     }
 
+    /**
+     * @return $this
+     */
     public function asBlob()
     {
         $this->setType(OCI_B_BLOB);
@@ -97,9 +157,32 @@ class OciParameter
         return $this;
     }
 
-    public function withLength($length)
+    /**
+     * @return $this
+     */
+    public function asCursor()
     {
-        $this->length = (int) $length;
+        $this->value     = new OciCursor($this->statement->getConnection());
+        $this->type      = OCI_B_CURSOR;
+        $this->maxLength = -1;
+
+        return $this;
+    }
+
+    /**
+     * @param int $maxLength
+     *
+     * @return $this
+     *
+     * @throws OciException
+     */
+    public function withMaxLength($maxLength)
+    {
+        if (is_int($this->type)) {
+            throw new OciException('Cannot change parameter type after it has been defined.');
+        }
+
+        $this->maxLength = (int) $maxLength;
 
         return $this;
     }
@@ -112,12 +195,15 @@ class OciParameter
     protected function setType($type)
     {
         if (is_int($this->type)) {
-            throw new OciException('Cannot change type of bound parameter.');
+            throw new OciException('Cannot change parameter type after it has been defined.');
         }
 
         $this->type = $type;
     }
 
+    /**
+     * @return bool
+     */
     public function bind()
     {
         static $lobTypes = array(OCI_B_CLOB, OCI_B_BLOB);
@@ -148,7 +234,7 @@ class OciParameter
             $this->statement->getResource(),
             $this->name,
             $locator->getResource(),
-            $this->length,
+            $this->maxLength,
             $this->type
         );
     }
@@ -158,11 +244,17 @@ class OciParameter
      */
     protected function doBind()
     {
+        if ($this->value instanceof OciCursor) {
+            $value = $this->value->getResource();
+        } else {
+            $value = &$this->value;
+        }
+
         return oci_bind_by_name(
             $this->statement->getResource(),
             $this->name,
-            $this->value,
-            $this->length,
+            $value,
+            $this->maxLength,
             $this->type
         );
     }

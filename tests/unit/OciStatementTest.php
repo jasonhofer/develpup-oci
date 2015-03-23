@@ -23,9 +23,9 @@ class OciStatementTest extends AbstractUnitTestCase
     public function testBindReturnsOciParameter()
     {
         $conn = $this->ociConnect();
-        $stmt = $conn->query('SELECT * FROM employees WHERE job_id = :job_id');
+        $stmt = $conn->prepare('SELECT * FROM employees WHERE job_id = :job_id');
 
-        $this->assertInstanceOf('Develpup\Oci\OciParameter', $stmt->bind('job_id')->toVal(10)->asInt());
+        $this->assertInstanceOf('Develpup\Oci\OciParameter', $stmt->bind('job_id')->toVal('ST_CLERK')->asString());
 
         $stmt->execute();
     }
