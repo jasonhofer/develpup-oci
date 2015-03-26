@@ -25,7 +25,7 @@ class OciStatementTest extends AbstractUnitTestCase
         $conn = $this->ociConnect();
         $stmt = $conn->prepare('SELECT * FROM employees WHERE job_id = :job_id');
 
-        $this->assertInstanceOf('Develpup\Oci\OciParameter', $stmt->bind('job_id')->toVal('ST_CLERK')->asString());
+        $this->assertInstanceOf('Develpup\Oci\OciParameter', $stmt->bind('job_id')->toValue('ST_CLERK')->asString());
 
         $stmt->execute();
     }

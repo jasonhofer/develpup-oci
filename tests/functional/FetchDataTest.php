@@ -46,7 +46,7 @@ class FetchDataTest extends AbstractFunctionalTestCase
     {
         $conn = $this->ociConnect();
         $stmt = $conn->prepare('SELECT * FROM hr.employees WHERE job_id = :job_id');
-        $stmt->bind('job_id')->toVal('ST_CLERK')->asString();
+        $stmt->bind('job_id')->toValue('ST_CLERK')->asString();
         $stmt->execute();
 
         $rows = array();

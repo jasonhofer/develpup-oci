@@ -73,7 +73,7 @@ class OciParameter
      *
      * @return $this
      */
-    public function toVal($val)
+    public function toValue($val)
     {
         $this->value = $val;
 

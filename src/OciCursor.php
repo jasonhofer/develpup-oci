@@ -105,7 +105,7 @@ class OciCursor extends AbstractOciResource
     /**
      * @param int $columnIndex
      *
-     * @return mixed
+     * @return array|null
      */
     public function fetchColumn($columnIndex = 0)
     {
@@ -135,6 +135,16 @@ class OciCursor extends AbstractOciResource
     }
 
     /**
+     * @param int $index
+     *
+     * @return string
+     */
+    public function columnName($index)
+    {
+        return oci_field_name($this->resource, (int) $index);
+    }
+
+    /**
      * @return OciConnection
      */
     public function getConnection()
@@ -148,6 +158,8 @@ class OciCursor extends AbstractOciResource
     public function close()
     {
         $this->resource and oci_free_cursor($this->resource);
+
+        $this->resource = null;
 
         return true;
     }

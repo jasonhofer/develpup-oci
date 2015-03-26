@@ -35,7 +35,7 @@ class OciConnection extends AbstractOciResource
      *
      * @throws OciException
      */
-    public function __construct($username, $password, $dsn, $charset = null, $sessionMode = null, $persistent = true)
+    public function __construct($username, $password, $dsn, $charset = null, $sessionMode = null, $persistent = false)
     {
         if (!defined('OCI_NO_AUTO_COMMIT')) {
             define('OCI_NO_AUTO_COMMIT', OCI_DEFAULT);
@@ -67,19 +67,34 @@ class OciConnection extends AbstractOciResource
     }
 
     /**
+     * @param string $sql
+     *
      * @return OciStatement
      *
      * @throws OciException
      */
-    public function query()
+    public function query($sql)
     {
-        $args = func_get_args();
-        $sql  = $args[0];
-        //$fetchMode = $args[1];
         $stmt = $this->prepare($sql);
         $stmt->execute();
 
         return $stmt;
+    }
+
+    /**
+     * @param OciStatement $statement
+     *
+     * @return OciStatement
+     *
+     * @throws OciException
+     */
+    public function describe(OciStatement $statement)
+    {
+        $this->executeMode = OCI_DESCRIBE_ONLY;
+
+        $statement->execute();
+
+        $this->executeMode = OCI_COMMIT_ON_SUCCESS;
     }
 
     /**
@@ -157,6 +172,13 @@ class OciConnection extends AbstractOciResource
      */
     public function close()
     {
-        return ($this->resource ? oci_close($this->resource) : true);
+        if (null === $this->resource) {
+            return true;
+        }
+
+        $closed         = oci_close($this->resource);
+        $this->resource = null;
+
+        return $closed;
     }
 }

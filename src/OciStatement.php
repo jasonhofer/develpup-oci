@@ -72,9 +72,18 @@ class OciStatement extends OciCursor
 
     /**
      * @return bool
+     *
+     * @throws OciException
      */
     public function close()
     {
-        return ($this->resource ? oci_free_statement($this->resource) : true);
+        if (null === $this->resource) {
+            return true;
+        }
+
+        $closed         = oci_free_statement($this->resource);
+        $this->resource = null;
+
+        return $closed;
     }
 }
