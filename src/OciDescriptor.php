@@ -20,9 +20,9 @@ namespace Develpup\Oci;
  */
 class OciDescriptor extends AbstractOciResource
 {
-    const TYPE_LOB    = OCI_DTYPE_LOB;
-    const TYPE_FILE   = OCI_DTYPE_FILE;
-    const TYPE_ROW_ID = OCI_DTYPE_ROWID;
+    const TYPE_LOB    = OCI_D_LOB;
+    const TYPE_FILE   = OCI_D_FILE;
+    const TYPE_ROW_ID = OCI_D_ROWID;
 
     /**
      * @var \OCI_Lob
@@ -42,14 +42,31 @@ class OciDescriptor extends AbstractOciResource
     /**
      * @param OciConnection $connection
      * @param int           $type
+     * @param \OCI_Lob      $lob
      */
-    public function __construct(OciConnection $connection, $type = self::TYPE_LOB)
+    public function __construct(OciConnection $connection, $type = self::TYPE_LOB, $lob = null)
     {
         $this->connection = $connection;
         $this->type       = $type;
-        $this->resource   = oci_new_descriptor($connection->getResource(), $type);
+
+        if (null === $lob) {
+            $this->resource = oci_new_descriptor($connection->getResource(), $type);
+        } else {
+            $this->resource = $lob;
+        }
 
         $this->assertValidResource();
+    }
+
+    /**
+     * @param string $data
+     * @param int    $offset
+     *
+     * @return bool
+     */
+    public function save($data, $offset = null)
+    {
+        return $this->resource->save($data, $offset);
     }
 
     /**
@@ -63,8 +80,25 @@ class OciDescriptor extends AbstractOciResource
     /**
      * @return bool
      */
+    protected function checkValidResource()
+    {
+        static $lobClass = 'OCI-Lob';
+
+        return $this->resource instanceof $lobClass;
+    }
+
+    /**
+     * @return bool
+     */
     public function close()
     {
-        return $this->resource->free();
+        if (null === $this->resource) {
+            return true;
+        }
+
+        $closed         = $this->resource->free();
+        $this->resource = null;
+
+        return $closed;
     }
 }

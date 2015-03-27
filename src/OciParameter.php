@@ -51,7 +51,7 @@ class OciParameter
     /**
      * @var int
      */
-    protected $maxLength = -1;
+    protected $size = -1;
 
     /**
      * @var bool
@@ -94,35 +94,39 @@ class OciParameter
 
     /**
      * @param null &$var
-     * @param int  $maxLength
      *
      * @return $this
      */
-    public function toOutVar(&$var, $maxLength = -1)
+    public function toOutVar(&$var)
     {
-        $this->value     = &$var;
-        $this->maxLength = (int) $maxLength;
-        $this->output    = true;
+        $this->value  = &$var;
+        $this->output = true;
 
         return $this;
     }
 
     /**
+     * @param int $size
+     *
      * @return $this
      */
-    public function asString()
+    public function asString($size = -1)
     {
         $this->setType(SQLT_CHR);
+        $this->size = (int) $size;
 
         return $this;
     }
 
     /**
+     * @param int $size
+     *
      * @return $this
      */
-    public function asInt()
+    public function asInt($size = -1)
     {
         $this->setType(OCI_B_INT);
+        $this->size = (int) $size;
 
         return $this;
     }
@@ -130,29 +134,48 @@ class OciParameter
     /**
      * @return $this
      */
-    public function asLong()
+    public function asBool()
+    {
+        $this->setType(OCI_B_BOL);
+
+        return $this;
+    }
+
+    /**
+     * @param int $size
+     *
+     * @return $this
+     */
+    public function asLong($size = -1)
     {
         $this->setType(SQLT_LNG);
+        $this->size = (int) $size;
 
         return $this;
     }
 
     /**
+     * @param int $size
+     *
      * @return $this
      */
-    public function asClob()
+    public function asClob($size = -1)
     {
         $this->setType(OCI_B_CLOB);
+        $this->size = (int) $size;
 
         return $this;
     }
 
     /**
+     * @param int $size
+     *
      * @return $this
      */
-    public function asBlob()
+    public function asBlob($size = -1)
     {
         $this->setType(OCI_B_BLOB);
+        $this->size = (int) $size;
 
         return $this;
     }
@@ -162,27 +185,19 @@ class OciParameter
      */
     public function asCursor()
     {
-        $this->value     = new OciCursor($this->statement->getConnection());
-        $this->type      = OCI_B_CURSOR;
-        $this->maxLength = -1;
+        $this->setType(OCI_B_CURSOR);
 
         return $this;
     }
 
     /**
-     * @param int $maxLength
-     *
      * @return $this
      *
      * @throws OciException
      */
-    public function withMaxLength($maxLength)
+    public function asRowId()
     {
-        if (is_int($this->type)) {
-            throw new OciException('Cannot change parameter type after it has been defined.');
-        }
-
-        $this->maxLength = (int) $maxLength;
+        $this->setType(OCI_B_ROWID);
 
         return $this;
     }
@@ -206,55 +221,53 @@ class OciParameter
      */
     public function bind()
     {
-        static $lobTypes = array(OCI_B_CLOB, OCI_B_BLOB);
+        static $lobClass = 'OCI-Lob';
 
-        if (in_array($this->type, $lobTypes)) {
-            return $this->doBindLob();
+        switch ($this->type) {
+            case OCI_B_CURSOR:
+                $this->value = new OciCursor($this->statement->getConnection());
+                $this->size  = -1;
+                $cursor      = $this->value->getResource();
+
+                return $this->bindTo($cursor);
+
+            case OCI_B_ROWID:
+                if (!$this->value instanceof OciRowId) {
+                    $this->value = new OciRowId(
+                        $this->statement->getConnection(),
+                        ($this->value instanceof $lobClass ? $this->value : null)
+                    );
+                }
+                $this->size = -1;
+                $descriptor = $this->value->getResource();
+
+                return $this->bindTo($descriptor);
+
+            case OCI_B_CLOB:
+            case OCI_B_BLOB:
+                $lob = new OciLob($this->statement->getConnection());
+                $this->statement->afterExecute(array($lob, 'save'), $this->value);
+                $resource = $lob->getResource();
+
+                return $this->bindTo($resource);
+
+            default:
+                return $this->bindTo($this->value);
         }
-
-        return $this->doBind();
     }
 
     /**
+     * @param mixed $value
+     *
      * @return bool
      */
-    protected function doBindLob()
+    protected function bindTo(&$value)
     {
-        $locator = new OciDescriptor($this->statement->getConnection(), OciDescriptor::TYPE_LOB);
-
-        /*
-        $this->statement->afterExecute(
-            function () use ($locator) {
-                $locator->save($this->variable);
-            }
-        );
-        */
-
-        return oci_bind_by_name(
-            $this->statement->getResource(),
-            $this->name,
-            $locator->getResource(),
-            $this->maxLength,
-            $this->type
-        );
-    }
-
-    /**
-     * @return bool
-     */
-    protected function doBind()
-    {
-        if ($this->value instanceof OciCursor) {
-            $value = $this->value->getResource();
-        } else {
-            $value = &$this->value;
-        }
-
         return oci_bind_by_name(
             $this->statement->getResource(),
             $this->name,
             $value,
-            $this->maxLength,
+            $this->size,
             $this->type
         );
     }

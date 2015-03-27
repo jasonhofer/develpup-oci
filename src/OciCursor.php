@@ -57,7 +57,7 @@ class OciCursor extends AbstractOciResource
      */
     public function fetchAssoc()
     {
-        return oci_fetch_assoc($this->resource);
+        return oci_fetch_array($this->resource, OCI_ASSOC | OCI_RETURN_NULLS | OCI_RETURN_LOBS);
     }
 
     /**
@@ -65,8 +65,12 @@ class OciCursor extends AbstractOciResource
      *
      * @return array
      */
-    public function fetchArray($flags = OCI_BOTH)
+    public function fetchArray($flags = null)
     {
+        if (null === $flags) {
+            $flags = OCI_NUM | OCI_RETURN_NULLS | OCI_RETURN_LOBS;
+        }
+
         return oci_fetch_array($this->resource, $flags);
     }
 

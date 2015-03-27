@@ -31,6 +31,11 @@ class OciStatement extends OciCursor
     private $bound = false;
 
     /**
+     * @var array[]
+     */
+    private $afterExecute = array();
+
+    /**
      * @param OciConnection $connection
      * @param string        $statement
      */
@@ -67,7 +72,14 @@ class OciStatement extends OciCursor
             $this->bound = true;
         }
 
-        return parent::execute();
+        $result = parent::execute();
+
+        foreach ($this->afterExecute as $args) {
+            $callback = array_shift($args);
+            call_user_func_array($callback, $args);
+        }
+
+        return $result;
     }
 
     /**
@@ -85,5 +97,13 @@ class OciStatement extends OciCursor
         $this->resource = null;
 
         return $closed;
+    }
+
+    /**
+     * @param callable $callback
+     */
+    public function afterExecute($callback)
+    {
+        $this->afterExecute[] = func_get_args();
     }
 }

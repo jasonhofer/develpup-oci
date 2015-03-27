@@ -128,6 +128,16 @@ abstract class AbstractFunctionalTestCase extends PHPUnit_Extensions_Database_Te
     }
 
     /**
+     * @param string $name
+     *
+     * @return int
+     */
+    protected function dropFunctionIfExists($name)
+    {
+        return $this->dropIfExists('function', $name);
+    }
+
+    /**
      * @see http://stackoverflow.com/questions/1799128/oracle-if-table-exists
      *
      * @param string $type

@@ -39,11 +39,19 @@ abstract class AbstractOciResource
     }
 
     /**
+     * @return bool
+     */
+    protected function checkValidResource()
+    {
+        return is_resource($this->resource);
+    }
+
+    /**
      * @throws OciException
      */
     protected function assertValidResource()
     {
-        if (!$this->resource) {
+        if (!$this->checkValidResource()) {
             throw OciException::fromErrorInfo($this->errorInfo());
         }
     }

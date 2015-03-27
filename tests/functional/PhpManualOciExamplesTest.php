@@ -12,6 +12,8 @@
 namespace Develpup\Test\Oci;
 
 use Develpup\Oci\OciConnection;
+use Develpup\Oci\OciDescriptor;
+use Develpup\Oci\OciRowId;
 
 /**
  * Class PhpManualOciExamplesTest
@@ -305,9 +307,9 @@ class PhpManualOciExamplesTest extends AbstractFunctionalTestCase
      *
      * Same as oci_connect() example #1
      */
-//    public function test_oci_parse_example_1()
-//    {
-//    }
+//- public function test_oci_parse_example_1()
+//- {
+//- }
 
     /**
      * Example #2 oci_parse() example for PL/SQL statements
@@ -328,14 +330,13 @@ class PhpManualOciExamplesTest extends AbstractFunctionalTestCase
         $stmt = $conn->prepare('BEGIN x2(:p1, :p2); END;');
 
         $stmt->bind('p1')->toValue(8)->asInt();
-        $stmt->bind('p2')->toOutVar($p2, 40)->asInt();
+        $stmt->bind('p2')->toVar($p2)->asInt(40);
 
         $stmt->execute();
 
         $this->assertSame(16, $p2, 'Output variable did not contain the expected value.');
 
         $stmt->close();
-        $conn->close();
 
         $this->dropProcedureIfExists('x2');
     }
@@ -352,9 +353,9 @@ class PhpManualOciExamplesTest extends AbstractFunctionalTestCase
      *
      * Same as oci_connect() example #1
      */
-//    public function test_oci_execute_example_1()
-//    {
-//    }
+//- public function test_oci_execute_example_1()
+//- {
+//- }
 
     /**
      * Example #2 oci_execute() without specifying a mode example
@@ -411,14 +412,12 @@ class PhpManualOciExamplesTest extends AbstractFunctionalTestCase
      *
      * @TODO can this even be done using this system?
      */
-//    public function test_oci_execute_example_4()
-//    {
-//    }
+//- public function test_oci_execute_example_4()
+//- {
+//- }
 
     /**
      * Example #5 oci_execute() with OCI_DESCRIBE_ONLY example
-     *
-     * @group new
      */
     public function test_oci_execute_example_5()
     {
@@ -450,70 +449,420 @@ class PhpManualOciExamplesTest extends AbstractFunctionalTestCase
      * @see http://us.php.net/manual/en/function.oci-bind-by-name.php
     \******************************************************************************************************************/
 
-//    public function test_oci_bind_by_name_example_1()
-//    {
-//        $this->markTestSkipped();
-//    }
-//
-//    public function test_oci_bind_by_name_example_2()
-//    {
-//        $this->markTestSkipped();
-//    }
-//
-//    public function test_oci_bind_by_name_example_3()
-//    {
-//        $this->markTestSkipped();
-//    }
-//
-//    public function test_oci_bind_by_name_example_4()
-//    {
-//        $this->markTestSkipped();
-//    }
-//
-//    public function test_oci_bind_by_name_example_5()
-//    {
-//        $this->markTestSkipped();
-//    }
-//
-//    public function test_oci_bind_by_name_example_6()
-//    {
-//        $this->markTestSkipped();
-//    }
-//
-//    public function test_oci_bind_by_name_example_7()
-//    {
-//        $this->markTestSkipped();
-//    }
-//
-//    public function test_oci_bind_by_name_example_8()
-//    {
-//        $this->markTestSkipped();
-//    }
-//
-//    public function test_oci_bind_by_name_example_9()
-//    {
-//        $this->markTestSkipped();
-//    }
-//
-//    public function test_oci_bind_by_name_example_10()
-//    {
-//        $this->markTestSkipped();
-//    }
-//
-//    public function test_oci_bind_by_name_example_11()
-//    {
-//        $this->markTestSkipped();
-//    }
-//
-//    public function test_oci_bind_by_name_example_12()
-//    {
-//        $this->markTestSkipped();
-//    }
-//
-//    public function test_oci_bind_by_name_example_13()
-//    {
-//        $this->markTestSkipped();
-//    }
+    /**
+     * Example #1 Inserting data with oci_bind_by_name()
+     */
+    public function test_oci_bind_by_name_example_1()
+    {
+        // Create the table with:
+        //   CREATE TABLE my_table (id NUMBER, text VARCHAR2(40));
+
+        $this->dropTableIfExists('my_table');
+        $this->getConnection()->getConnection()->exec('CREATE TABLE my_table (id NUMBER, text VARCHAR2(40))');
+        $this->assertTableRowCount('my_table', 0, 'Pre-condition');
+
+        $conn = $this->ociConnect();
+        $stmt = $conn->prepare('INSERT INTO my_table (id, text) VALUES(:id_bv, :text_bv)');
+        $stmt->bind('id_bv')->toValue(1)->asInt();
+        $stmt->bind('text_bv')->toValue('Data to insert     ')->asString();
+        $stmt->execute();
+
+        // Table now contains: 1, 'Data to insert     '
+
+        $this->assertTableRowCount('my_table', 1);
+
+        $this->dropTableIfExists('my_table');
+    }
+
+    /**
+     * Example #2 Binding once for multiple
+     */
+    public function test_oci_bind_by_name_example_2()
+    {
+        $this->dropTableIfExists('my_table');
+        $this->getConnection()->getConnection()->exec('CREATE TABLE my_table (id NUMBER, text VARCHAR2(40))');
+        $this->assertTableRowCount('my_table', 0, 'Pre-condition');
+
+        $conn = $this->ociConnect();
+
+        $numbers = array(1, 3, 5, 7, 11);  // data to insert
+        $count   = count($numbers);
+
+        $stmt = $conn->prepare('INSERT INTO my_table (id) VALUES (:bv)');
+        $stmt->bind('bv')->toVar($v)->asInt(20);
+
+        $conn->beginTransaction();
+        foreach ($numbers as $v) {
+            $stmt->execute();
+        }
+        $conn->commit(); // commit everything at once
+
+        // Table contains five rows: 1, 3, 5, 7, 11
+        $this->assertTableRowCount('my_table', $count);
+
+        $stmt   = $conn->query('SELECT id FROM my_table');
+        $values = array();
+        while (($val = $stmt->fetchColumn())) {
+            $values[] = (int) $val;
+        }
+
+        $this->assertSame($numbers, $values);
+
+        $stmt->close();
+
+        $this->dropTableIfExists('my_table');
+    }
+
+    /**
+     * Example #3 Binding with a foreach() loop
+     */
+    public function test_oci_bind_by_name_example_3()
+    {
+        $conn = $this->ociConnect();
+        $stmt = $conn->prepare('SELECT * FROM departments WHERE department_name = :dname AND location_id = :loc');
+
+        $ba = array(':dname' => 'IT Support', ':loc' => 1700);
+
+        foreach ($ba as $key => $val) {
+            // no need to worry about using $va[$key] instead of just $val when using this system.
+            $stmt->bind($key)->toValue($val);
+        }
+
+        $stmt->execute();
+        $row = $stmt->fetchArray(OCI_ASSOC | OCI_RETURN_NULLS);
+
+        $expected = array(
+            'DEPARTMENT_ID'   => '210',
+            'DEPARTMENT_NAME' => 'IT Support',
+            'MANAGER_ID'      => null,
+            'LOCATION_ID'     => '1700',
+        );
+
+        $this->assertSame($expected, $row);
+
+        $stmt->close();
+    }
+
+    /**
+     * Example #4 Binding in a WHERE clause
+     */
+    public function test_oci_bind_by_name_example_4()
+    {
+        $conn = $this->ociConnect();
+        $stmt = $conn->prepare('SELECT last_name FROM employees WHERE department_id = :didbv ORDER BY last_name');
+        $stmt->bind(':didbv')->toValue(60)->asInt();
+        $stmt->execute();
+
+        $lastNames = array();
+        while (($row = $stmt->fetchAssoc())) {
+            $lastNames[] = $row['LAST_NAME'];
+        }
+
+        $this->assertSame(array('Austin', 'Ernst', 'Hunold', 'Lorentz', 'Pataballa'), $lastNames);
+
+        $stmt->close();
+    }
+
+    /**
+     * Example #5 Binding with a LIKE clause
+     */
+    public function test_oci_bind_by_name_example_5()
+    {
+        $conn = $this->ociConnect();
+        $stmt = $conn->prepare('SELECT city FROM locations WHERE city LIKE :bv');
+        $stmt->bind(':bv')->toValue('South%')->asString();
+        $stmt->execute();
+
+        $rows   = $stmt->fetchAll();
+        $cities = array();
+        foreach ($rows as $row) {
+            $cities[] = $row['CITY'];
+        }
+
+        $this->assertSame(array('South Brunswick', 'South San Francisco', 'Southlake'), $cities);
+
+        $stmt->close();
+    }
+
+    /**
+     * Example #6 Binding with REGEXP_LIKE
+     */
+    public function test_oci_bind_by_name_example_6()
+    {
+        $conn = $this->ociConnect();
+        $stmt = $conn->prepare('SELECT city FROM locations WHERE REGEXP_LIKE(city, :bv)');
+        $stmt->bind(':bv')->toValue('.*ing.*')->asString();
+        $stmt->execute();
+
+        $rows   = $stmt->fetchAll();
+        $cities = array();
+        foreach ($rows as $row) {
+            $cities[] = $row['CITY'];
+        }
+
+        $this->assertSame(array('Beijing', 'Singapore'), $cities);
+
+        $stmt->close();
+    }
+
+    /**
+     * Example #7 Binding Multiple Values in an IN Clause
+     */
+    public function test_oci_bind_by_name_example_7()
+    {
+        $conn = $this->ociConnect();
+        $stmt = $conn->prepare('SELECT last_name FROM employees WHERE employee_id in (:e1, :e2, :e3)');
+        $stmt->bind('e1')->toValue(103)->asInt();
+        $stmt->bind('e2')->toValue(104)->asInt();
+        $stmt->bind('e3')->toValue(null)->asInt();
+        $stmt->execute();
+
+        $rows  = $stmt->fetchAll();
+        $names = array();
+        foreach ($rows as $row) {
+            $names[] = $row['LAST_NAME'];
+        }
+
+        $this->assertSame(array('Hunold', 'Ernst'), $names);
+
+        $stmt->close();
+    }
+
+    /**
+     * Example #8 Binding a ROWID returned by a query
+     */
+    public function test_oci_bind_by_name_example_8()
+    {
+        $this->dropTableIfExists('my_table');
+        $testConn = $this->getConnection()->getConnection();
+        $testConn->exec('CREATE TABLE my_table (id NUMBER, salary NUMBER, name VARCHAR2(40))');
+        $this->assertTableRowCount('my_table', 0, 'Pre-condition');
+        $testConn->exec("INSERT INTO my_table (id, salary, name) VALUES (1, 100, 'Chris')");
+        $this->assertTableRowCount('my_table', 1, 'Pre-condition');
+
+        $conn = $this->ociConnect();
+        $stmt = $conn->prepare('SELECT ROWID, name FROM my_table WHERE id = :id_bv FOR UPDATE');
+        $stmt->bind('id_bv')->toValue(1)->asInt();
+        $stmt->execute();
+        $row  = $stmt->fetchAssoc();
+
+        /** @var \OCI_Lob $rid */
+        $rid  = $row['ROWID'];
+        $name = $row['NAME'];
+
+        $stmt->close();
+
+        $this->assertInstanceOf('OCI-Lob', $rid);
+        $this->assertEquals('Chris', $name);
+
+        $stmt = $conn->prepare('UPDATE my_table SET name = :n_bv WHERE ROWID = :r_bv');
+        $stmt->bind('n_bv')->toValue('CHRIS')->asString();
+        $stmt->bind('r_bv')->toVar($rid)->asRowId();
+        $stmt->execute();
+
+        $stmt->close();
+
+        $stmt = $conn->prepare('SELECT name FROM my_table');
+        $stmt->execute();
+        $name = $stmt->fetchColumn();
+
+        $this->assertSame('CHRIS', $name);
+
+        $stmt->close();
+
+        $this->dropTableIfExists('my_table');
+    }
+
+    /**
+     * Example #9 Binding a ROWID on INSERT
+     */
+    public function test_oci_bind_by_name_example_9()
+    {
+        $this->dropTableIfExists('my_table');
+        $this->getConnection()->getConnection()->exec('CREATE TABLE my_table (id NUMBER, salary NUMBER, name VARCHAR2(40))');
+        $this->assertTableRowCount('my_table', 0, 'Pre-condition');
+
+        $conn   = $this->ociConnect();
+        $rowId  = new OciRowId($conn);
+        $inStmt = $conn->prepare('INSERT INTO my_table (id, name) VALUES(:id_bv, :name_bv) RETURNING ROWID INTO :rid');
+        $inStmt->bind('id_bv')->toVar($id)->asInt(10);
+        $inStmt->bind('name_bv')->toVar($name)->asString(32);
+        $inStmt->bind('rid')->toVar($rowId)->asRowId();
+
+        $upStmt = $conn->prepare('UPDATE my_table SET salary = :salary WHERE ROWID = :rid');
+        $upStmt->bind('salary')->toVar($salary)->asInt(32);
+        $upStmt->bind('rid')->toVar($rowId)->asRowId();
+
+        $data = array(
+            1111 => "Larry",
+            2222 => "Bill",
+            3333 => "Jim"
+        );
+
+        // Salary of each person
+        $salary = 10000;
+
+        // Insert and immediately update each row
+        foreach ($data as $id => $name) {
+            $inStmt->execute();
+            $upStmt->execute();
+        }
+
+        /** @var \Develpup\Oci\OciDescriptor $rowId */
+        $rowId->close();
+        $inStmt->close();
+        $upStmt->close();
+
+        $stmt = $conn->query('SELECT * FROM my_table');
+        $rows = $stmt->fetchAll();
+
+        $expected = array(
+            array(
+                'ID'     => '1111',
+                'SALARY' => '10000',
+                'NAME'   => 'Larry',
+            ),
+            array(
+                'ID'     => '2222',
+                'SALARY' => '10000',
+                'NAME'   => 'Bill',
+            ),
+            array(
+                'ID'     => '3333',
+                'SALARY' => '10000',
+                'NAME'   => 'Jim',
+            ),
+        );
+
+        $this->assertSame($expected, $rows);
+
+        $stmt->close();
+
+        $this->dropTableIfExists('my_table');
+    }
+
+    /**
+     * Example #10 Binding for a PL/SQL stored function
+     */
+    public function test_oci_bind_by_name_example_10()
+    {
+        $this->dropFunctionIfExists('times_three');
+        $this->getConnection()->getConnection()->exec(
+            'CREATE OR REPLACE FUNCTION times_three(n IN NUMBER) RETURN NUMBER AS BEGIN RETURN n * 3; END;'
+        );
+
+        $conn = $this->ociConnect();
+        $stmt = $conn->prepare('BEGIN :result := times_three(:num); END;');
+        $stmt->bind('num')->toValue(8)->asInt();
+        $stmt->bind('result')->toVar($result)->asInt(40);
+        $stmt->execute();
+
+        $this->assertSame(24, $result);
+
+        $stmt->close();
+
+        $this->dropFunctionIfExists('times_three');
+    }
+
+    /**
+     * Example #11 Binding parameters for a PL/SQL stored procedure
+     */
+    public function test_oci_bind_by_name_example_11()
+    {
+        $this->dropProcedureIfExists('times_two');
+        $this->getConnection()->getConnection()->exec(
+            'CREATE OR REPLACE PROCEDURE times_two(p1 IN NUMBER, p2 OUT NUMBER) AS BEGIN p2 := p1 * 2; END;'
+        );
+
+        $conn = $this->ociConnect();
+        $stmt = $conn->prepare('BEGIN times_two(:p1, :p2); END;');
+        $stmt->bind('p1')->toValue(8)->asInt();
+        $stmt->bind('p2')->toVar($result)->asInt(40);
+        $stmt->execute();
+
+        $this->assertSame(16, $result);
+
+        $stmt->close();
+
+        $this->dropProcedureIfExists('times_two');
+    }
+
+    /**
+     * Example #12 Binding a CLOB column
+     */
+    public function test_oci_bind_by_name_example_12()
+    {
+        $this->dropTableIfExists('my_table');
+        $this->getConnection()->getConnection()->exec('CREATE TABLE my_table (my_key NUMBER, my_clob CLOB)');
+
+        $conn = $this->ociConnect();
+        $conn->beginTransaction();
+        $stmt = $conn->prepare(
+            'INSERT INTO my_table (my_key, my_clob) VALUES (:my_key, EMPTY_CLOB()) RETURNING my_clob INTO :my_clob'
+        );
+        $stmt->bind(':my_key')->toValue($myKey = 12343)->asInt(); // arbitrary key for this example
+        $stmt->bind(':my_clob')->toValue('A very long string')->asClob();
+        $stmt->execute();
+
+        // $clob->save('A very long string');
+
+        $conn->commit();
+
+        $stmt = $conn->prepare('SELECT my_clob FROM my_table WHERE my_key = :my_key');
+        $stmt->bind('my_key')->toValue($myKey)->asInt();
+        $stmt->execute();
+
+        $rows = array();
+
+        while (($row = $stmt->fetchAssoc())) {
+            $rows[] = $row;
+            // In a loop, freeing the large variable before the 2nd fetch reduces PHP's peak memory usage
+            unset($row);
+        }
+
+        $this->assertSame(array(array('MY_CLOB' => 'A very long string')), $rows);
+
+        $this->dropTableIfExists('my_table');
+    }
+
+    /**
+     * Example #13 Binding a PL/SQL BOOLEAN
+     *
+     * @TODO Not working. Could be a version problem.
+     */
+    public function ___test_oci_bind_by_name_example_13()
+    {
+        $conn = oci_connect('hr', 'ROOT4oracle', 'localhost/XE');
+        if (!$conn) {
+            $e = oci_error();
+            trigger_error(htmlentities($e['message']), E_USER_ERROR);
+        }
+
+        $sql = 'BEGIN :output1 := true; :output2 := false; END;';
+
+        $stmt = oci_parse($conn, $sql);
+        oci_bind_by_name($stmt, ':output1', $output1, -1, OCI_B_BOL);
+        oci_bind_by_name($stmt, ':output2', $output2, -1, OCI_B_BOL);
+        oci_execute($stmt);
+
+        $this->assertSame(true, $output1);
+        $this->assertSame(false, $output2);
+    }
+
+
+    /******************************************************************************************************************\
+     * oci_bind_array_by_name()
+     *
+     * @see http://us.php.net/manual/en/function.oci-bind-array-by-name.php
+    \******************************************************************************************************************/
+
+    /**
+     * Example #1 oci_bind_array_by_name() example
+     */
+    public function test_oci_bind_array_by_name_example_1()
+    {
+        $this->markTestIncomplete('@TODO implement');
+    }
 
 
     /******************************************************************************************************************\
@@ -522,10 +871,40 @@ class PhpManualOciExamplesTest extends AbstractFunctionalTestCase
      * @see http://us.php.net/manual/en/function.oci-new-cursor.php
     \******************************************************************************************************************/
 
-//    public function test_oci_new_cursor_example_1()
-//    {
-//        $this->markTestSkipped();
-//    }
+    /**
+     * Example #1 Binding a REF CURSOR in an Oracle stored procedure call
+     */
+    public function test_oci_new_cursor_example_1()
+    {
+        $this->dropProcedureIfExists('get_employees');
+        $this->getConnection()->getConnection()->exec(
+            'CREATE OR REPLACE PROCEDURE get_employees (
+                my_rc OUT sys_refcursor
+            ) AS BEGIN
+                OPEN my_rc FOR SELECT first_name FROM employees;
+            END;'
+        );
+
+        $conn = $this->ociConnect();
+        $stmt = $conn->prepare('BEGIN get_employees(:curs); END;');
+        $stmt->bind('curs')->toVar($curs)->asCursor();
+
+        /** @var \Develpup\Oci\OciCursor $curs */
+        $stmt->execute();
+        $curs->execute();
+
+        $names = array();
+        while (($row = $curs->fetchAssoc())) {
+            $names[] = $row['FIRST_NAME'];
+        }
+
+        $this->assertSame($this->getEmployeeFirstNames(), $names);
+
+        $stmt->close();
+        $curs->close();
+
+        $this->dropProcedureIfExists('get_employees');
+    }
 
 
     /******************************************************************************************************************\
@@ -654,18 +1033,6 @@ class PhpManualOciExamplesTest extends AbstractFunctionalTestCase
 
 
     /******************************************************************************************************************\
-     * oci_fetch_assoc()
-     *
-     * @see http://us.php.net/manual/en/function.oci-fetch-assoc.php
-    \******************************************************************************************************************/
-
-//    public function test_oci_fetch_assoc_example_1()
-//    {
-//        $this->markTestSkipped();
-//    }
-
-
-    /******************************************************************************************************************\
      * oci_fetch_object()
      *
      * @see http://us.php.net/manual/en/function.oci-fetch-object.php
@@ -763,4 +1130,122 @@ class PhpManualOciExamplesTest extends AbstractFunctionalTestCase
 //    {
 //        $this->markTestSkipped();
 //    }
+
+    /**
+     * @TODO I know there is a way to get this from the XML DataSet, but no time right now.
+     *
+     * @return array
+     */
+    protected function getEmployeeFirstNames()
+    {
+        return array (
+            0 => 'Ellen',
+            1 => 'Sundar',
+            2 => 'Mozhe',
+            3 => 'David',
+            4 => 'Hermann',
+            5 => 'Shelli',
+            6 => 'Amit',
+            7 => 'Elizabeth',
+            8 => 'Sarah',
+            9 => 'David',
+            10 => 'Laura',
+            11 => 'Harrison',
+            12 => 'Alexis',
+            13 => 'Anthony',
+            14 => 'Gerald',
+            15 => 'Nanette',
+            16 => 'John',
+            17 => 'Kelly',
+            18 => 'Karen',
+            19 => 'Curtis',
+            20 => 'Lex',
+            21 => 'Julia',
+            22 => 'Jennifer',
+            23 => 'Louise',
+            24 => 'Bruce',
+            25 => 'Alberto',
+            26 => 'Britney',
+            27 => 'Daniel',
+            28 => 'Pat',
+            29 => 'Kevin',
+            30 => 'Jean',
+            31 => 'Tayler',
+            32 => 'Adam',
+            33 => 'Timothy',
+            34 => 'Ki',
+            35 => 'Girard',
+            36 => 'William',
+            37 => 'Douglas',
+            38 => 'Kimberely',
+            39 => 'Nancy',
+            40 => 'Danielle',
+            41 => 'Peter',
+            42 => 'Michael',
+            43 => 'Shelley',
+            44 => 'Guy',
+            45 => 'Alexander',
+            46 => 'Alyssa',
+            47 => 'Charles',
+            48 => 'Vance',
+            49 => 'Payam',
+            50 => 'Alexander',
+            51 => 'Janette',
+            52 => 'Steven',
+            53 => 'Neena',
+            54 => 'Sundita',
+            55 => 'Renske',
+            56 => 'James',
+            57 => 'David',
+            58 => 'Jack',
+            59 => 'Diana',
+            60 => 'Jason',
+            61 => 'Steven',
+            62 => 'James',
+            63 => 'Mattea',
+            64 => 'Randall',
+            65 => 'Susan',
+            66 => 'Samuel',
+            67 => 'Allan',
+            68 => 'Irene',
+            69 => 'Kevin',
+            70 => 'Julia',
+            71 => 'Donald',
+            72 => 'Christopher',
+            73 => 'TJ',
+            74 => 'Lisa',
+            75 => 'Karen',
+            76 => 'Valli',
+            77 => 'Joshua',
+            78 => 'Randall',
+            79 => 'Hazel',
+            80 => 'Luis',
+            81 => 'Trenna',
+            82 => 'Den',
+            83 => 'Michael',
+            84 => 'John',
+            85 => 'Nandita',
+            86 => 'Ismael',
+            87 => 'John',
+            88 => 'Sarath',
+            89 => 'Lindsey',
+            90 => 'William',
+            91 => 'Stephen',
+            92 => 'Martha',
+            93 => 'Patrick',
+            94 => 'Jonathon',
+            95 => 'Winston',
+            96 => 'Sigal',
+            97 => 'Peter',
+            98 => 'Oliver',
+            99 => 'Jose Manuel',
+            100 => 'Peter',
+            101 => 'Clara',
+            102 => 'Shanta',
+            103 => 'Alana',
+            104 => 'Matthew',
+            105 => 'Jennifer',
+            106 => 'Eleni',
+        );
+    }
 }

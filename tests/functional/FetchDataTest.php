@@ -11,8 +11,6 @@
 
 namespace Develpup\Test\Oci;
 
-use PHPUnit_Extensions_Database_DataSet_DataSetFilter;
-
 /**
  * Class OciConnectionTest
  *
@@ -22,24 +20,22 @@ use PHPUnit_Extensions_Database_DataSet_DataSetFilter;
  */
 class FetchDataTest extends AbstractFunctionalTestCase
 {
-    public function testQueryAndFetchArray()
+    public function testQueryAndFetchAssoc()
     {
         $expected = $this->getConnection()->getRowCount('employees');
         $this->assertEquals(107, $expected, 'Pre-Check');
 
         $conn = $this->ociConnect();
-        $stmt = $conn->query('SELECT * FROM hr.employees');
+        $stmt = $conn->query('SELECT * FROM employees');
 
         $rows = array();
 
-        while (($row = $stmt->fetchArray())) {
+        while (($row = $stmt->fetchAssoc())) {
             $rows[] = $row;
         }
 
         $this->assertEquals($expected, count($rows), 'Row count is not the same.');
         $this->assertArrayHasKey('EMPLOYEE_ID', $rows[0]);
-        $this->assertArrayHasKey(0, $rows[0]);
-        $this->assertSame($rows[0]['EMPLOYEE_ID'], $rows[0][0], 'Keyed and indexed employee ID did not match.');
     }
 
     public function testPrepareAndFetchAssoc()
