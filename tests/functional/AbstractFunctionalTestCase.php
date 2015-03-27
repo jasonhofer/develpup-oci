@@ -37,7 +37,12 @@ abstract class AbstractFunctionalTestCase extends PHPUnit_Extensions_Database_Te
     {
         if ($this->conn === null) {
             if (self::$pdo == null) {
-                $dsn       = $GLOBALS['DB_DSN'] ?: sprintf('oci:dbname=//%s:%d/%s', $GLOBALS['DB_HOST'], $GLOBALS['DB_PORT'], $GLOBALS['DB_NAME']);
+                $dsn       = $GLOBALS['DB_DSN'] ?: sprintf(
+                    'oci:dbname=//%s:%d/%s',
+                    $GLOBALS['DB_HOST'],
+                    $GLOBALS['DB_PORT'],
+                    $GLOBALS['DB_NAME']
+                );
                 self::$pdo = new \PDO($dsn, $GLOBALS['DB_USER'], $GLOBALS['DB_PASS']);
             }
             $this->conn = $this->createDefaultDBConnection(self::$pdo, $GLOBALS['DB_NAME']);
@@ -108,6 +113,29 @@ abstract class AbstractFunctionalTestCase extends PHPUnit_Extensions_Database_Te
     }
 
     /**
+     * @param string $table
+     * @param array  $columns
+     * @param bool   $exclude Exclude the given columns from the dataset.
+     *
+     * @return \PHPUnit_Extensions_Database_DataSet_DataSetFilter
+     */
+    protected function createTableDataSet($table, array $columns = array(), $exclude = false)
+    {
+        $dataSet = new \PHPUnit_Extensions_Database_DataSet_DataSetFilter($this->getDataSet());
+        $dataSet->addIncludeTables(array($table));
+
+        if ($columns) {
+            if ($exclude) {
+                $dataSet->setExcludeColumnsForTable($table, $columns);
+            } else {
+                $dataSet->setIncludeColumnsForTable($table, $columns);
+            }
+        }
+
+        return $dataSet;
+    }
+
+    /**
      * @param string $name
      *
      * @return int
@@ -165,7 +193,8 @@ abstract class AbstractFunctionalTestCase extends PHPUnit_Extensions_Database_Te
         $type = strtoupper($type);
         $code = $codes[$type];
 
-        return $this->getConnection()->getConnection()->exec("
+        return $this->getConnection()->getConnection()->exec(
+            "
             BEGIN
                 EXECUTE IMMEDIATE 'DROP {$type} {$name}';
             EXCEPTION
@@ -174,6 +203,30 @@ abstract class AbstractFunctionalTestCase extends PHPUnit_Extensions_Database_Te
                      RAISE;
                   END IF;
             END;
-        ");
+        "
+        );
+    }
+
+    /**
+     * @param string $table
+     * @param string $column
+     * @param bool   $sorted
+     *
+     * @return array
+     */
+    protected function getDataSetColumnValues($table, $column, $sorted = false)
+    {
+        $values = array();
+        $table  = $this->createTableDataSet($table, array($column))->getTable($table);
+
+        for ($i = 0; $i < $table->getRowCount(); ++$i) {
+            $values[] = $table->getValue($i, $column);
+        }
+
+        if ($sorted) {
+            sort($values);
+        }
+
+        return $values;
     }
 }

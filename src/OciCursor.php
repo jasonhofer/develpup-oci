@@ -109,17 +109,34 @@ class OciCursor extends AbstractOciResource
     /**
      * @param int $columnIndex
      *
-     * @return array|null
+     * @return mixed
      */
     public function fetchColumn($columnIndex = 0)
     {
-        $row = $this->fetchArray(OCI_NUM | OCI_RETURN_NULLS | OCI_RETURN_LOBS);
+        $row = $this->fetchArray();
 
         if (false === $row) {
             return false;
         }
 
         return (isset($row[$columnIndex]) ? $row[$columnIndex] : null);
+    }
+
+    /**
+     * @param int $columnIndex
+     *
+     * @return array
+     */
+    public function fetchColumnAll($columnIndex = 0)
+    {
+        $values = array();
+
+        while (false !== ($value = $this->fetchColumn($columnIndex))) {
+            $values[] = $value;
+            unset($value); // @TODO look into whether this really does keep PHP peak memory usage down.
+        }
+
+        return $values;
     }
 
     /**

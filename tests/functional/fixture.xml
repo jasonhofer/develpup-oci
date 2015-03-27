@@ -1,10 +1,10 @@
 <?xml version='1.0'  encoding='UTF8' ?>
 <dataset>
-    <table name="jobs">
-        <column>job_id</column>
-        <column>job_title</column>
-        <column>min_salary</column>
-        <column>max_salary</column>
+    <table name="JOBS">
+        <column>JOB_ID</column>
+        <column>JOB_TITLE</column>
+        <column>MIN_SALARY</column>
+        <column>MAX_SALARY</column>
         <row>
             <value>AD_PRES</value>
             <value>President</value>
@@ -120,9 +120,9 @@
             <value>10500</value>
         </row>
     </table>
-    <table name="regions">
-        <column>region_id</column>
-        <column>region_name</column>
+    <table name="REGIONS">
+        <column>REGION_ID</column>
+        <column>REGION_NAME</column>
         <row>
             <value>1</value>
             <value>Europe</value>
@@ -140,10 +140,10 @@
             <value>Middle East and Africa</value>
         </row>
     </table>
-    <table name="countries">
-        <column>country_id</column>
-        <column>country_name</column>
-        <column>region_id</column>
+    <table name="COUNTRIES">
+        <column>COUNTRY_ID</column>
+        <column>COUNTRY_NAME</column>
+        <column>REGION_ID</column>
         <row>
             <value>AR</value>
             <value>Argentina</value>
@@ -270,13 +270,13 @@
             <value>4</value>
         </row>
     </table>
-    <table name="locations">
-        <column>location_id</column>
-        <column>street_address</column>
-        <column>postal_code</column>
-        <column>city</column>
-        <column>state_province</column>
-        <column>country_id</column>
+    <table name="LOCATIONS">
+        <column>LOCATION_ID</column>
+        <column>STREET_ADDRESS</column>
+        <column>POSTAL_CODE</column>
+        <column>CITY</column>
+        <column>STATE_PROVINCE</column>
+        <column>COUNTRY_ID</column>
         <row>
             <value>1000</value>
             <value>1297 Via Cola di Rie</value>
@@ -462,11 +462,11 @@
             <value>MX</value>
         </row>
     </table>
-    <table name="departments">
-        <column>department_id</column>
-        <column>department_name</column>
-        <column>manager_id</column>
-        <column>location_id</column>
+    <table name="DEPARTMENTS">
+        <column>DEPARTMENT_ID</column>
+        <column>DEPARTMENT_NAME</column>
+        <column>MANAGER_ID</column>
+        <column>LOCATION_ID</column>
         <row>
             <value>10</value>
             <value>Administration</value>
@@ -630,18 +630,18 @@
             <value>1700</value>
         </row>
     </table>
-    <table name="employees">
-        <column>employee_id</column>
-        <column>first_name</column>
-        <column>last_name</column>
-        <column>email</column>
-        <column>phone_number</column>
-        <column>hire_date</column>
-        <column>job_id</column>
-        <column>salary</column>
-        <column>commission_pct</column>
-        <column>manager_id</column>
-        <column>department_id</column>
+    <table name="EMPLOYEES">
+        <column>EMPLOYEE_ID</column>
+        <column>FIRST_NAME</column>
+        <column>LAST_NAME</column>
+        <column>EMAIL</column>
+        <column>PHONE_NUMBER</column>
+        <column>HIRE_DATE</column>
+        <column>JOB_ID</column>
+        <column>SALARY</column>
+        <column>COMMISSION_PCT</column>
+        <column>MANAGER_ID</column>
+        <column>DEPARTMENT_ID</column>
         <row>
             <value>100</value>
             <value>Steven</value>
@@ -2034,12 +2034,12 @@
             <value>110</value>
         </row>
     </table>
-    <table name="job_history">
-        <column>employee_id</column>
-        <column>start_date</column>
-        <column>end_date</column>
-        <column>job_id</column>
-        <column>department_id</column>
+    <table name="JOB_HISTORY">
+        <column>EMPLOYEE_ID</column>
+        <column>START_DATE</column>
+        <column>END_DATE</column>
+        <column>JOB_ID</column>
+        <column>DEPARTMENT_ID</column>
         <row>
             <value>102</value>
             <value>13-JAN-01</value>

@@ -12,7 +12,6 @@
 namespace Develpup\Test\Oci;
 
 use Develpup\Oci\OciConnection;
-use Develpup\Oci\OciDescriptor;
 use Develpup\Oci\OciRowId;
 
 /**
@@ -317,7 +316,7 @@ class PhpManualOciExamplesTest extends AbstractFunctionalTestCase
     public function test_oci_parse_example_2()
     {
         $this->getConnection()->getConnection()->exec("
-            CREATE OR REPLACE PROCEDURE x2 (
+            CREATE OR REPLACE PROCEDURE times_two (
                 p1 IN NUMBER,
                 p2 OUT NUMBER
             ) AS BEGIN
@@ -327,7 +326,7 @@ class PhpManualOciExamplesTest extends AbstractFunctionalTestCase
 
         $conn = $this->ociConnect();
 
-        $stmt = $conn->prepare('BEGIN x2(:p1, :p2); END;');
+        $stmt = $conn->prepare('BEGIN times_two(:p1, :p2); END;');
 
         $stmt->bind('p1')->toValue(8)->asInt();
         $stmt->bind('p2')->toVar($p2)->asInt(40);
@@ -338,7 +337,7 @@ class PhpManualOciExamplesTest extends AbstractFunctionalTestCase
 
         $stmt->close();
 
-        $this->dropProcedureIfExists('x2');
+        $this->dropProcedureIfExists('times_two');
     }
 
 
@@ -746,7 +745,6 @@ class PhpManualOciExamplesTest extends AbstractFunctionalTestCase
      */
     public function test_oci_bind_by_name_example_10()
     {
-        $this->dropFunctionIfExists('times_three');
         $this->getConnection()->getConnection()->exec(
             'CREATE OR REPLACE FUNCTION times_three(n IN NUMBER) RETURN NUMBER AS BEGIN RETURN n * 3; END;'
         );
@@ -769,7 +767,6 @@ class PhpManualOciExamplesTest extends AbstractFunctionalTestCase
      */
     public function test_oci_bind_by_name_example_11()
     {
-        $this->dropProcedureIfExists('times_two');
         $this->getConnection()->getConnection()->exec(
             'CREATE OR REPLACE PROCEDURE times_two(p1 IN NUMBER, p2 OUT NUMBER) AS BEGIN p2 := p1 * 2; END;'
         );
@@ -873,15 +870,16 @@ class PhpManualOciExamplesTest extends AbstractFunctionalTestCase
 
     /**
      * Example #1 Binding a REF CURSOR in an Oracle stored procedure call
+     *
+     * @group temp
      */
     public function test_oci_new_cursor_example_1()
     {
-        $this->dropProcedureIfExists('get_employees');
         $this->getConnection()->getConnection()->exec(
             'CREATE OR REPLACE PROCEDURE get_employees (
                 my_rc OUT sys_refcursor
             ) AS BEGIN
-                OPEN my_rc FOR SELECT first_name FROM employees;
+                OPEN my_rc FOR SELECT first_name FROM employees ORDER BY 1;
             END;'
         );
 
@@ -890,17 +888,15 @@ class PhpManualOciExamplesTest extends AbstractFunctionalTestCase
         $stmt->bind('curs')->toVar($curs)->asCursor();
 
         /** @var \Develpup\Oci\OciCursor $curs */
-        $stmt->execute();
+        $stmt->execute(); // MUST execute statement first
         $curs->execute();
 
-        $names = array();
-        while (($row = $curs->fetchAssoc())) {
-            $names[] = $row['FIRST_NAME'];
-        }
+        $names    = $curs->fetchColumnAll();
+        $expected = $this->getDataSetColumnValues('EMPLOYEES', 'FIRST_NAME', true);
 
-        $this->assertSame($this->getEmployeeFirstNames(), $names);
+        $this->assertSame($expected, $names);
 
-        $stmt->close();
+        $stmt->close(); // okay to close statement before closing cursor
         $curs->close();
 
         $this->dropProcedureIfExists('get_employees');
@@ -1130,122 +1126,4 @@ class PhpManualOciExamplesTest extends AbstractFunctionalTestCase
 //    {
 //        $this->markTestSkipped();
 //    }
-
-    /**
-     * @TODO I know there is a way to get this from the XML DataSet, but no time right now.
-     *
-     * @return array
-     */
-    protected function getEmployeeFirstNames()
-    {
-        return array (
-            0 => 'Ellen',
-            1 => 'Sundar',
-            2 => 'Mozhe',
-            3 => 'David',
-            4 => 'Hermann',
-            5 => 'Shelli',
-            6 => 'Amit',
-            7 => 'Elizabeth',
-            8 => 'Sarah',
-            9 => 'David',
-            10 => 'Laura',
-            11 => 'Harrison',
-            12 => 'Alexis',
-            13 => 'Anthony',
-            14 => 'Gerald',
-            15 => 'Nanette',
-            16 => 'John',
-            17 => 'Kelly',
-            18 => 'Karen',
-            19 => 'Curtis',
-            20 => 'Lex',
-            21 => 'Julia',
-            22 => 'Jennifer',
-            23 => 'Louise',
-            24 => 'Bruce',
-            25 => 'Alberto',
-            26 => 'Britney',
-            27 => 'Daniel',
-            28 => 'Pat',
-            29 => 'Kevin',
-            30 => 'Jean',
-            31 => 'Tayler',
-            32 => 'Adam',
-            33 => 'Timothy',
-            34 => 'Ki',
-            35 => 'Girard',
-            36 => 'William',
-            37 => 'Douglas',
-            38 => 'Kimberely',
-            39 => 'Nancy',
-            40 => 'Danielle',
-            41 => 'Peter',
-            42 => 'Michael',
-            43 => 'Shelley',
-            44 => 'Guy',
-            45 => 'Alexander',
-            46 => 'Alyssa',
-            47 => 'Charles',
-            48 => 'Vance',
-            49 => 'Payam',
-            50 => 'Alexander',
-            51 => 'Janette',
-            52 => 'Steven',
-            53 => 'Neena',
-            54 => 'Sundita',
-            55 => 'Renske',
-            56 => 'James',
-            57 => 'David',
-            58 => 'Jack',
-            59 => 'Diana',
-            60 => 'Jason',
-            61 => 'Steven',
-            62 => 'James',
-            63 => 'Mattea',
-            64 => 'Randall',
-            65 => 'Susan',
-            66 => 'Samuel',
-            67 => 'Allan',
-            68 => 'Irene',
-            69 => 'Kevin',
-            70 => 'Julia',
-            71 => 'Donald',
-            72 => 'Christopher',
-            73 => 'TJ',
-            74 => 'Lisa',
-            75 => 'Karen',
-            76 => 'Valli',
-            77 => 'Joshua',
-            78 => 'Randall',
-            79 => 'Hazel',
-            80 => 'Luis',
-            81 => 'Trenna',
-            82 => 'Den',
-            83 => 'Michael',
-            84 => 'John',
-            85 => 'Nandita',
-            86 => 'Ismael',
-            87 => 'John',
-            88 => 'Sarath',
-            89 => 'Lindsey',
-            90 => 'William',
-            91 => 'Stephen',
-            92 => 'Martha',
-            93 => 'Patrick',
-            94 => 'Jonathon',
-            95 => 'Winston',
-            96 => 'Sigal',
-            97 => 'Peter',
-            98 => 'Oliver',
-            99 => 'Jose Manuel',
-            100 => 'Peter',
-            101 => 'Clara',
-            102 => 'Shanta',
-            103 => 'Alana',
-            104 => 'Matthew',
-            105 => 'Jennifer',
-            106 => 'Eleni',
-        );
-    }
 }
