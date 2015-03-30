@@ -108,8 +108,10 @@ class OciConnection extends AbstractOciResource
     {
         $stmt = $this->prepare($statement);
         $stmt->execute();
+        $count = $stmt->rowCount();
+        $stmt->close();
 
-        return $stmt->rowCount();
+        return $count;
     }
 
     /**

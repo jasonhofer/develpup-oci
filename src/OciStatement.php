@@ -47,6 +47,11 @@ class OciStatement extends OciCursor
         $this->assertValidResource();
     }
 
+    /**
+     * @param string $name
+     *
+     * @return OciParameter
+     */
     public function bind($name)
     {
         if (!isset($this->paramMap[$name])) {

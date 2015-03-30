@@ -361,16 +361,16 @@ class PhpManualOciExamplesTest extends AbstractFunctionalTestCase
      */
     public function test_oci_execute_example_2()
     {
-        $this->dropTableIfExists('my_table');
-        $this->getConnection()->getConnection()->exec('CREATE TABLE my_table (col1 NUMBER)');
-        $this->assertTableRowCount('my_table', 0, 'Pre-condition');
+        $this->dropTableIfExists('my_table_1');
+        $this->getConnection()->getConnection()->exec('CREATE TABLE my_table_1 (col1 NUMBER)');
+        $this->assertTableRowCount('my_table_1', 0, 'Pre-condition');
 
         $conn = $this->ociConnect();
-        $conn->exec('INSERT INTO my_table (col1) VALUES (123)'); // The row is committed and immediately visible to other users
+        $conn->exec('INSERT INTO my_table_1 (col1) VALUES (123)'); // The row is committed and immediately visible to other users
 
-        $this->assertTableRowCount('my_table', 1);
+        $this->assertTableRowCount('my_table_1', 1);
 
-        $this->dropTableIfExists('my_table');
+        $this->dropTableIfExists('my_table_1');
     }
 
     /**
@@ -378,24 +378,24 @@ class PhpManualOciExamplesTest extends AbstractFunctionalTestCase
      */
     public function test_oci_execute_example_3()
     {
-        $this->dropTableIfExists('my_table');
-        $this->getConnection()->getConnection()->exec('CREATE TABLE my_table (col1 NUMBER)');
-        $this->assertTableRowCount('my_table', 0, 'Pre-condition');
+        $this->dropTableIfExists('my_table_2');
+        $this->getConnection()->getConnection()->exec('CREATE TABLE my_table_2 (col1 NUMBER)');
+        $this->assertTableRowCount('my_table_2', 0, 'Pre-condition');
 
         $conn = $this->ociConnect();
         $conn->beginTransaction();
-        $stmt = $conn->prepare('INSERT INTO my_table (col1) VALUES (:bv)');
+        $stmt = $conn->prepare('INSERT INTO my_table_2 (col1) VALUES (:bv)');
         $stmt->bind('bv')->toVar($i)->asInt();
         $count = 5;
         for ($i = 1; $i <= $count; ++$i) {
             $stmt->execute();
         }
-        $this->assertTableRowCount('my_table', 0, 'Pre-commit condition');
+        $this->assertTableRowCount('my_table_2', 0, 'Pre-commit condition');
         $conn->commit();
 
-        $this->assertTableRowCount('my_table', $count);
+        $this->assertTableRowCount('my_table_2', $count);
 
-        $stmt = $conn->query('SELECT col1 FROM my_table');
+        $stmt = $conn->query('SELECT col1 FROM my_table_2');
         $vals = array();
         while (($val = $stmt->fetchColumn())) {
             $vals[] = (int) $val;
@@ -403,7 +403,7 @@ class PhpManualOciExamplesTest extends AbstractFunctionalTestCase
 
         $this->assertSame(range(1, $count), $vals);
 
-        $this->dropTableIfExists('my_table');
+        $this->dropTableIfExists('my_table_2');
     }
 
     /**
@@ -453,24 +453,21 @@ class PhpManualOciExamplesTest extends AbstractFunctionalTestCase
      */
     public function test_oci_bind_by_name_example_1()
     {
-        // Create the table with:
-        //   CREATE TABLE my_table (id NUMBER, text VARCHAR2(40));
-
-        $this->dropTableIfExists('my_table');
-        $this->getConnection()->getConnection()->exec('CREATE TABLE my_table (id NUMBER, text VARCHAR2(40))');
-        $this->assertTableRowCount('my_table', 0, 'Pre-condition');
+        $this->dropTableIfExists('my_table_3');
+        $this->getConnection()->getConnection()->exec('CREATE TABLE my_table_3 (id NUMBER, text VARCHAR2(40))');
+        $this->assertTableRowCount('my_table_3', 0, 'Pre-condition');
 
         $conn = $this->ociConnect();
-        $stmt = $conn->prepare('INSERT INTO my_table (id, text) VALUES(:id_bv, :text_bv)');
+        $stmt = $conn->prepare('INSERT INTO my_table_3 (id, text) VALUES(:id_bv, :text_bv)');
         $stmt->bind('id_bv')->toValue(1)->asInt();
         $stmt->bind('text_bv')->toValue('Data to insert     ')->asString();
         $stmt->execute();
 
         // Table now contains: 1, 'Data to insert     '
 
-        $this->assertTableRowCount('my_table', 1);
+        $this->assertTableRowCount('my_table_3', 1);
 
-        $this->dropTableIfExists('my_table');
+        $this->dropTableIfExists('my_table_3');
     }
 
     /**
@@ -478,16 +475,16 @@ class PhpManualOciExamplesTest extends AbstractFunctionalTestCase
      */
     public function test_oci_bind_by_name_example_2()
     {
-        $this->dropTableIfExists('my_table');
-        $this->getConnection()->getConnection()->exec('CREATE TABLE my_table (id NUMBER, text VARCHAR2(40))');
-        $this->assertTableRowCount('my_table', 0, 'Pre-condition');
+        $this->dropTableIfExists('my_table_4');
+        $this->getConnection()->getConnection()->exec('CREATE TABLE my_table_4 (id NUMBER, text VARCHAR2(40))');
+        $this->assertTableRowCount('my_table_4', 0, 'Pre-condition');
 
         $conn = $this->ociConnect();
 
         $numbers = array(1, 3, 5, 7, 11);  // data to insert
         $count   = count($numbers);
 
-        $stmt = $conn->prepare('INSERT INTO my_table (id) VALUES (:bv)');
+        $stmt = $conn->prepare('INSERT INTO my_table_4 (id) VALUES (:bv)');
         $stmt->bind('bv')->toVar($v)->asInt(20);
 
         $conn->beginTransaction();
@@ -497,9 +494,9 @@ class PhpManualOciExamplesTest extends AbstractFunctionalTestCase
         $conn->commit(); // commit everything at once
 
         // Table contains five rows: 1, 3, 5, 7, 11
-        $this->assertTableRowCount('my_table', $count);
+        $this->assertTableRowCount('my_table_4', $count);
 
-        $stmt   = $conn->query('SELECT id FROM my_table');
+        $stmt   = $conn->query('SELECT id FROM my_table_4');
         $values = array();
         while (($val = $stmt->fetchColumn())) {
             $values[] = (int) $val;
@@ -509,7 +506,7 @@ class PhpManualOciExamplesTest extends AbstractFunctionalTestCase
 
         $stmt->close();
 
-        $this->dropTableIfExists('my_table');
+        $this->dropTableIfExists('my_table_4');
     }
 
     /**
@@ -632,15 +629,15 @@ class PhpManualOciExamplesTest extends AbstractFunctionalTestCase
      */
     public function test_oci_bind_by_name_example_8()
     {
-        $this->dropTableIfExists('my_table');
+        $this->dropTableIfExists('my_table_5');
         $testConn = $this->getConnection()->getConnection();
-        $testConn->exec('CREATE TABLE my_table (id NUMBER, salary NUMBER, name VARCHAR2(40))');
-        $this->assertTableRowCount('my_table', 0, 'Pre-condition');
-        $testConn->exec("INSERT INTO my_table (id, salary, name) VALUES (1, 100, 'Chris')");
-        $this->assertTableRowCount('my_table', 1, 'Pre-condition');
+        $testConn->exec('CREATE TABLE my_table_5 (id NUMBER, salary NUMBER, name VARCHAR2(40))');
+        $this->assertTableRowCount('my_table_5', 0, 'Pre-condition');
+        $testConn->exec("INSERT INTO my_table_5 (id, salary, name) VALUES (1, 100, 'Chris')");
+        $this->assertTableRowCount('my_table_5', 1, 'Pre-condition');
 
         $conn = $this->ociConnect();
-        $stmt = $conn->prepare('SELECT ROWID, name FROM my_table WHERE id = :id_bv FOR UPDATE');
+        $stmt = $conn->prepare('SELECT ROWID, name FROM my_table_5 WHERE id = :id_bv FOR UPDATE');
         $stmt->bind('id_bv')->toValue(1)->asInt();
         $stmt->execute();
         $row  = $stmt->fetchAssoc();
@@ -654,14 +651,14 @@ class PhpManualOciExamplesTest extends AbstractFunctionalTestCase
         $this->assertInstanceOf('OCI-Lob', $rid);
         $this->assertEquals('Chris', $name);
 
-        $stmt = $conn->prepare('UPDATE my_table SET name = :n_bv WHERE ROWID = :r_bv');
+        $stmt = $conn->prepare('UPDATE my_table_5 SET name = :n_bv WHERE ROWID = :r_bv');
         $stmt->bind('n_bv')->toValue('CHRIS')->asString();
         $stmt->bind('r_bv')->toVar($rid)->asRowId();
         $stmt->execute();
 
         $stmt->close();
 
-        $stmt = $conn->prepare('SELECT name FROM my_table');
+        $stmt = $conn->prepare('SELECT name FROM my_table_5');
         $stmt->execute();
         $name = $stmt->fetchColumn();
 
@@ -669,7 +666,7 @@ class PhpManualOciExamplesTest extends AbstractFunctionalTestCase
 
         $stmt->close();
 
-        $this->dropTableIfExists('my_table');
+        $this->dropTableIfExists('my_table_5');
     }
 
     /**
@@ -677,18 +674,18 @@ class PhpManualOciExamplesTest extends AbstractFunctionalTestCase
      */
     public function test_oci_bind_by_name_example_9()
     {
-        $this->dropTableIfExists('my_table');
-        $this->getConnection()->getConnection()->exec('CREATE TABLE my_table (id NUMBER, salary NUMBER, name VARCHAR2(40))');
-        $this->assertTableRowCount('my_table', 0, 'Pre-condition');
+        $this->dropTableIfExists('my_table_6');
+        $this->getConnection()->getConnection()->exec('CREATE TABLE my_table_6 (id NUMBER, salary NUMBER, name VARCHAR2(40))');
+        $this->assertTableRowCount('my_table_6', 0, 'Pre-condition');
 
         $conn   = $this->ociConnect();
         $rowId  = new OciRowId($conn);
-        $inStmt = $conn->prepare('INSERT INTO my_table (id, name) VALUES(:id_bv, :name_bv) RETURNING ROWID INTO :rid');
+        $inStmt = $conn->prepare('INSERT INTO my_table_6 (id, name) VALUES(:id_bv, :name_bv) RETURNING ROWID INTO :rid');
         $inStmt->bind('id_bv')->toVar($id)->asInt(10);
         $inStmt->bind('name_bv')->toVar($name)->asString(32);
         $inStmt->bind('rid')->toVar($rowId)->asRowId();
 
-        $upStmt = $conn->prepare('UPDATE my_table SET salary = :salary WHERE ROWID = :rid');
+        $upStmt = $conn->prepare('UPDATE my_table_6 SET salary = :salary WHERE ROWID = :rid');
         $upStmt->bind('salary')->toVar($salary)->asInt(32);
         $upStmt->bind('rid')->toVar($rowId)->asRowId();
 
@@ -712,7 +709,7 @@ class PhpManualOciExamplesTest extends AbstractFunctionalTestCase
         $inStmt->close();
         $upStmt->close();
 
-        $stmt = $conn->query('SELECT * FROM my_table');
+        $stmt = $conn->query('SELECT * FROM my_table_6');
         $rows = $stmt->fetchAll();
 
         $expected = array(
@@ -737,7 +734,7 @@ class PhpManualOciExamplesTest extends AbstractFunctionalTestCase
 
         $stmt->close();
 
-        $this->dropTableIfExists('my_table');
+        $this->dropTableIfExists('my_table_6');
     }
 
     /**
@@ -789,13 +786,13 @@ class PhpManualOciExamplesTest extends AbstractFunctionalTestCase
      */
     public function test_oci_bind_by_name_example_12()
     {
-        $this->dropTableIfExists('my_table');
-        $this->getConnection()->getConnection()->exec('CREATE TABLE my_table (my_key NUMBER, my_clob CLOB)');
+        $this->dropTableIfExists('my_table_7');
+        $this->getConnection()->getConnection()->exec('CREATE TABLE my_table_7 (my_key NUMBER, my_clob CLOB)');
 
         $conn = $this->ociConnect();
         $conn->beginTransaction();
         $stmt = $conn->prepare(
-            'INSERT INTO my_table (my_key, my_clob) VALUES (:my_key, EMPTY_CLOB()) RETURNING my_clob INTO :my_clob'
+            'INSERT INTO my_table_7 (my_key, my_clob) VALUES (:my_key, EMPTY_CLOB()) RETURNING my_clob INTO :my_clob'
         );
         $stmt->bind(':my_key')->toValue($myKey = 12343)->asInt(); // arbitrary key for this example
         $stmt->bind(':my_clob')->toValue('A very long string')->asClob();
@@ -805,7 +802,7 @@ class PhpManualOciExamplesTest extends AbstractFunctionalTestCase
 
         $conn->commit();
 
-        $stmt = $conn->prepare('SELECT my_clob FROM my_table WHERE my_key = :my_key');
+        $stmt = $conn->prepare('SELECT my_clob FROM my_table_7 WHERE my_key = :my_key');
         $stmt->bind('my_key')->toValue($myKey)->asInt();
         $stmt->execute();
 
@@ -819,7 +816,7 @@ class PhpManualOciExamplesTest extends AbstractFunctionalTestCase
 
         $this->assertSame(array(array('MY_CLOB' => 'A very long string')), $rows);
 
-        $this->dropTableIfExists('my_table');
+        $this->dropTableIfExists('my_table_7');
     }
 
     /**
@@ -870,8 +867,6 @@ class PhpManualOciExamplesTest extends AbstractFunctionalTestCase
 
     /**
      * Example #1 Binding a REF CURSOR in an Oracle stored procedure call
-     *
-     * @group temp
      */
     public function test_oci_new_cursor_example_1()
     {
@@ -926,10 +921,34 @@ class PhpManualOciExamplesTest extends AbstractFunctionalTestCase
      * @see http://us.php.net/manual/en/function.oci-num-rows.php
     \******************************************************************************************************************/
 
-//    public function test_oci_num_rows_example_1()
-//    {
-//        $this->markTestSkipped();
-//    }
+    /**
+     * Example #1 oci_num_rows() example
+     */
+    public function test_oci_num_rows_example_1()
+    {
+        $this->dropTableIfExists('employees_2');
+
+        $conn = $this->ociConnect();
+        $stmt = $conn->query('CREATE TABLE employees_2 AS SELECT * FROM employees');
+
+        $this->assertTableExists('employees_2');
+
+        $this->assertSame(self::TOTAL_EMPLOYEES, $stmt->rowCount());
+
+        $stmt->close();
+
+        $conn->beginTransaction();
+        $stmt = $conn->query('DELETE FROM employees_2');
+
+        $this->assertSame(self::TOTAL_EMPLOYEES, $stmt->rowCount());
+
+        $conn->commit();
+        $stmt->close();
+
+        $conn->exec('DROP TABLE employees_2');
+
+        $this->assertTableNotExists('employees_2');
+    }
 
 
     /******************************************************************************************************************\
@@ -938,10 +957,31 @@ class PhpManualOciExamplesTest extends AbstractFunctionalTestCase
      * @see http://us.php.net/manual/en/function.oci-num-fields.php
     \******************************************************************************************************************/
 
-//    public function test_oci_num_fields_example_1()
-//    {
-//        $this->markTestSkipped();
-//    }
+    /**
+     * Example #1 oci_num_fields() example
+     */
+    public function test_oci_num_fields_example_1()
+    {
+        $this->dropTableIfExists('my_table_8');
+
+        $this->getConnection()->getConnection()->exec('CREATE TABLE my_table_8 (id NUMBER, quantity NUMBER)');
+
+        $conn = $this->ociConnect();
+        $stmt = $conn->query('SELECT * FROM my_table_8');
+        $conn->describe($stmt);
+
+        $this->assertSame(2, $stmt->columnCount());
+
+        $this->assertSame('ID', $stmt->columnName(1));
+        $this->assertSame('NUMBER', $stmt->columnType(1));
+
+        $this->assertSame('QUANTITY', $stmt->columnName(2));
+        $this->assertSame('NUMBER', $stmt->columnType(2));
+
+        $stmt->close();
+
+        $this->dropTableIfExists('my_table_8');
+    }
 
 
     /******************************************************************************************************************\
@@ -950,36 +990,130 @@ class PhpManualOciExamplesTest extends AbstractFunctionalTestCase
      * @see http://us.php.net/manual/en/function.oci-fetch-array.php
     \******************************************************************************************************************/
 
-//    public function test_oci_fetch_array_example_1()
-//    {
-//        $this->markTestSkipped();
-//    }
-//
-//    public function test_oci_fetch_array_example_2()
-//    {
-//        $this->markTestSkipped();
-//    }
-//
-//    public function test_oci_fetch_array_example_3()
-//    {
-//        $this->markTestSkipped();
-//    }
-//
-//    public function test_oci_fetch_array_example_4()
-//    {
-//        $this->markTestSkipped();
-//    }
-//
-//    public function test_oci_fetch_array_example_5()
-//    {
-//        $this->markTestSkipped();
-//    }
-//
-//    public function test_oci_fetch_array_example_6()
-//    {
-//        $this->markTestSkipped();
-//    }
-//
+    /**
+     * Example #1 oci_fetch_array() with OCI_BOTH
+     */
+    public function test_oci_fetch_array_example_1()
+    {
+        $conn = $this->ociConnect();
+        $stmt = $conn->query('SELECT department_id, department_name FROM departments');
+        $stmt->execute();
+        while (($row = $stmt->fetchArray(OCI_BOTH))) {
+            $this->assertSame($row[0], $row['DEPARTMENT_ID']);
+            $this->assertSame($row[1], $row['DEPARTMENT_NAME']);
+        }
+        $stmt->close();
+    }
+
+    /**
+     * Example #2 oci_fetch_array() with OCI_NUM
+     */
+    public function test_oci_fetch_array_example_2()
+    {
+        $this->dropTableIfExists('my_table_9');
+        $testConn = $this->getConnection()->getConnection();
+        $testConn->exec('CREATE TABLE my_table_9 (id NUMBER, description CLOB)');
+        $testConn->exec("INSERT INTO my_table_9 (id, description) VALUES (1, 'A very long string')");
+
+        $conn = $this->ociConnect();
+        $stmt = $conn->query('SELECT id, description FROM my_table_9');
+        $stmt->execute();
+
+        while (($row = $stmt->fetchArray(OCI_NUM))) {
+            $this->assertCount(2, $row);
+            $this->assertEquals(1, $row[0]);
+            $this->assertInstanceOf('OCI-Lob', $row[1]);
+            $this->assertEquals('A very long', $row[1]->read(11)); // this will output first 11 bytes from DESCRIPTION
+        }
+
+        $stmt->close();
+
+        $this->dropTableIfExists('my_table_9');
+    }
+
+    /**
+     * Example #2 oci_fetch_array() with OCI_ASSOC
+     */
+    public function test_oci_fetch_array_example_3()
+    {
+        $this->dropTableIfExists('my_table_10');
+        $testConn = $this->getConnection()->getConnection();
+        $testConn->exec('CREATE TABLE my_table_10 (id NUMBER, description CLOB)');
+        $testConn->exec("INSERT INTO my_table_10 (id, description) VALUES (1, 'A very long string')");
+
+        $conn = $this->ociConnect();
+        $stmt = $conn->query('SELECT id, description FROM my_table_10');
+        $stmt->execute();
+
+        while (($row = $stmt->fetchArray(OCI_ASSOC))) {
+            $this->assertCount(2, $row);
+            $this->assertEquals(1, $row['ID']);
+            $this->assertInstanceOf('OCI-Lob', $row['DESCRIPTION']);
+            $this->assertEquals('A very long', $row['DESCRIPTION']->read(11)); // this will output first 11 bytes from DESCRIPTION
+        }
+
+        $stmt->close();
+
+        $this->dropTableIfExists('my_table_10');
+    }
+
+    /**
+     * Example #4 oci_fetch_array() with OCI_RETURN_NULLS
+     */
+    public function test_oci_fetch_array_example_4()
+    {
+        $conn = $this->ociConnect();
+
+        $stmt = $conn->query('SELECT 1, null FROM dual');
+        $stmt->execute();
+        $row = $stmt->fetchArray(OCI_NUM);
+        $this->assertCount(1, $row);
+        $stmt->close();
+
+        $stmt = $conn->query('SELECT 1, null FROM dual');
+        $stmt->execute();
+        $row = $stmt->fetchArray();
+        $this->assertCount(2, $row);
+        $stmt->close();
+    }
+
+    /**
+     * Example #5 oci_fetch_array() with OCI_RETURN_LOBS
+     *
+     * Same as oci_bind_by_name() example #12
+     */
+//- public function test_oci_fetch_array_example_5()
+//- {
+//- }
+
+    /**
+     * Example #6 oci_fetch_array() with case sensitive column names
+     *
+     * @group new
+     */
+    public function test_oci_fetch_array_example_6()
+    {
+        $this->dropTableIfExists('my_table_11');
+
+        $testConn = $this->getConnection()->getConnection();
+        $testConn->exec('CREATE TABLE my_table_11 ("Name" VARCHAR2(20), city VARCHAR2(20))');
+        $testConn->exec("INSERT INTO my_table_11 (\"Name\", city) VALUES ('Chris', 'Melbourne')");
+
+        $conn = $this->ociConnect();
+        $stmt = $conn->query('SELECT * FROM my_table_11');
+        $stmt->execute();
+        $row = $stmt->fetchAssoc();
+
+        $this->assertArrayHasKey('Name', $row);
+        $this->assertSame('Chris', $row['Name']);
+        $this->assertArrayHasKey('CITY', $row);
+        $this->assertSame('Melbourne', $row['CITY']);
+
+        $stmt->close();
+
+        $this->dropTableIfExists('my_table_11');
+    }
+
 //    public function test_oci_fetch_array_example_7()
 //    {
 //        $this->markTestSkipped();

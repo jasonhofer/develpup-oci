@@ -1,7 +1,7 @@
 {
     "name": "jasonhofer/develpup-oci",
     "type": "library",
-    "description": "A very lightweight wrapper around the PHP OCI8 extension.",
+    "description": "A lightweight wrapper around the PHP OCI8 extension.",
     "keywords": [],
     "homepage": "https://www.github.com/jasonhofer/develpup-oci",
     "license": "MIT",

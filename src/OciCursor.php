@@ -156,13 +156,39 @@ class OciCursor extends AbstractOciResource
     }
 
     /**
-     * @param int $index
+     * @param int $position
      *
      * @return string
      */
-    public function columnName($index)
+    public function columnName($position)
     {
-        return oci_field_name($this->resource, (int) $index);
+        return oci_field_name($this->resource, (int) $position);
+    }
+
+    /**
+     * @param int $position
+     *
+     * @return string
+     */
+    public function columnType($position)
+    {
+        return oci_field_type($this->resource, (int) $position);
+    }
+
+    /**
+     * @param int $rows
+     *
+     * @return $this
+     *
+     * @throws OciException
+     */
+    public function setPrefetch($rows)
+    {
+        if (!oci_set_prefetch($this->resource, (int) $rows)) {
+            throw OciException::fromErrorInfo($this->errorInfo());
+        }
+
+        return $this;
     }
 
     /**
