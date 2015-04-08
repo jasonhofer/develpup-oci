@@ -826,7 +826,7 @@ class PhpManualOciExamplesTest extends AbstractFunctionalTestCase
      */
     public function ___test_oci_bind_by_name_example_13()
     {
-        $conn = oci_connect('hr', 'ROOT4oracle', 'localhost/XE');
+        $conn = $this->ociConnect()->getResource();
         if (!$conn) {
             $e = oci_error();
             trigger_error(htmlentities($e['message']), E_USER_ERROR);
