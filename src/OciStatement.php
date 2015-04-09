@@ -68,20 +68,16 @@ class OciStatement extends OciCursor
      */
     public function execute()
     {
-        if (!$this->bound) {
-            foreach ($this->paramMap as $param) {
-                if (!$param->bind()) {
-                    throw OciException::fromErrorInfo($this->errorInfo());
-                }
+        foreach ($this->paramMap as $param) {
+            if (!$param->bind()) {
+                throw OciException::fromErrorInfo($this->errorInfo());
             }
-            $this->bound = true;
         }
 
         $result = parent::execute();
 
-        foreach ($this->afterExecute as $args) {
-            $callback = array_shift($args);
-            call_user_func_array($callback, $args);
+        foreach ($this->afterExecute as $callback) {
+            call_user_func($callback);
         }
 
         return $result;
@@ -105,10 +101,19 @@ class OciStatement extends OciCursor
     }
 
     /**
+     * @param string   $name
      * @param callable $callback
      */
-    public function afterExecute($callback)
+    public function afterExecute($name, $callback)
     {
-        $this->afterExecute[] = func_get_args();
+        $this->afterExecute[$name] = $callback;
+    }
+
+    /**
+     * @param string $name
+     */
+    public function clearAfterExecute($name)
+    {
+        unset($this->afterExecute[$name]);
     }
 }

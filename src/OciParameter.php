@@ -44,6 +44,21 @@ class OciParameter
     protected $value = null;
 
     /**
+     * @var mixed
+     */
+    protected $variable = null;
+
+    /**
+     * @var bool
+     */
+    protected $byReference = false;
+
+    /**
+     * @var OciLob
+     */
+    protected $lob;
+
+    /**
      * @var int
      */
     protected $type;
@@ -56,7 +71,7 @@ class OciParameter
     /**
      * @var bool
      */
-    protected $output = false;
+    protected $bound = false;
 
     /**
      * @param OciStatement $statement
@@ -75,7 +90,9 @@ class OciParameter
      */
     public function toValue($val)
     {
-        $this->value = $val;
+        $this->value       = $val;
+        $this->byReference = false;
+        $this->bound       = false;
 
         return $this;
     }
@@ -87,20 +104,9 @@ class OciParameter
      */
     public function toVar(&$var)
     {
-        $this->value = &$var;
-
-        return $this;
-    }
-
-    /**
-     * @param null &$var
-     *
-     * @return $this
-     */
-    public function toOutVar(&$var)
-    {
-        $this->value  = &$var;
-        $this->output = true;
+        $this->variable    = &$var;
+        $this->byReference = true;
+        $this->value       = null;
 
         return $this;
     }
@@ -209,7 +215,7 @@ class OciParameter
      */
     protected function setType($type)
     {
-        if (is_int($this->type)) {
+        if (is_int($this->type) && $this->type !== $type) {
             throw new OciException('Cannot change parameter type after it has been defined.');
         }
 
@@ -223,36 +229,64 @@ class OciParameter
     {
         static $lobClass = 'OCI-Lob';
 
+        if ($this->bound) {
+            return true;
+        }
+
+        $this->bound = $this->byReference; // No need to re-bind when bound to a reference.
+
         switch ($this->type) {
             case OCI_B_CURSOR:
-                $this->value = new OciCursor($this->statement->getConnection());
-                $this->size  = -1;
-                $cursor      = $this->value->getResource();
+                $this->variable = new OciCursor($this->statement->getConnection());
+                $this->size     = -1;
 
-                return $this->bindTo($cursor);
+                return $this->bindTo($this->variable->getResource());
 
             case OCI_B_ROWID:
-                if (!$this->value instanceof OciRowId) {
-                    $this->value = new OciRowId(
-                        $this->statement->getConnection(),
-                        ($this->value instanceof $lobClass ? $this->value : null)
-                    );
+                if ($this->lob instanceof OciRowId) {
+                    return true;
                 }
-                $this->size = -1;
-                $descriptor = $this->value->getResource();
 
-                return $this->bindTo($descriptor);
+                if ($this->variable instanceof OciRowId) {
+                    $this->lob = $this->variable;
+                } elseif ($this->variable instanceof $lobClass) {
+                    $this->lob = new OciRowId($this->statement->getConnection(), $this->variable);
+                    // $this->variable = $this->lob; // This behavior might be too unexpected.
+                } else {
+                    $this->lob      = new OciRowId($this->statement->getConnection());
+                    $this->variable = $this->lob;
+                }
+
+                $this->size = -1;
+
+                return $this->bindTo($this->lob->getResource());
 
             case OCI_B_CLOB:
             case OCI_B_BLOB:
-                $lob = new OciLob($this->statement->getConnection());
-                $this->statement->afterExecute(array($lob, 'save'), $this->value);
-                $resource = $lob->getResource();
+                $bound = ($this->lob instanceof OciLob);
 
-                return $this->bindTo($resource);
+                if (!$bound) {
+                    if ($this->variable instanceof OciLob) {
+                        $this->lob = $this->variable;
+                    } else {
+                        $this->lob = new OciLob($this->statement->getConnection());
+                    }
+                }
+
+                if ($this->byReference) {
+                    $this->statement->clearAfterExecute($this->name);
+                    $this->variable = $this->lob;
+                } else {
+                    $self = $this;
+                    $this->statement->afterExecute($this->name, function () use ($self) {
+                        $self->lob->save($self->value);
+                    });
+                }
+
+                return ($bound ?: $this->bindTo($this->lob->getResource()));
 
             default:
-                return $this->bindTo($this->value);
+                return $this->bindTo($this->byReference ? $this->variable : $this->value);
         }
     }
 

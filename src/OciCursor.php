@@ -127,7 +127,7 @@ class OciCursor extends AbstractOciResource
      *
      * @return array
      */
-    public function fetchColumnAll($columnIndex = 0)
+    public function fetchAllColumn($columnIndex = 0)
     {
         $values = array();
 

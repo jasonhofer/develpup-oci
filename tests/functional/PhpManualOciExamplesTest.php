@@ -36,6 +36,8 @@ class PhpManualOciExamplesTest extends AbstractFunctionalTestCase
      * Example #1 Basic oci_connect() using Easy Connect syntax
      *
      * Note: This is just testing the connection itself, it is not checking if you are using the "Easy Connect" syntax.
+     *
+     * @group php_examples
      */
     public function test_oci_connect_example_1()
     {
@@ -95,6 +97,8 @@ class PhpManualOciExamplesTest extends AbstractFunctionalTestCase
 
     /**
      * Example #3 oci_connect() with an explicit character set
+     *
+     * @group php_examples
      */
     public function test_oci_connect_example_3()
     {
@@ -144,6 +148,8 @@ class PhpManualOciExamplesTest extends AbstractFunctionalTestCase
 
     /**
      * Example #4 Using multiple calls to oci_connect()
+     *
+     * @group php_examples
      */
     public function test_oci_connect_example_4()
     {
@@ -246,6 +252,8 @@ class PhpManualOciExamplesTest extends AbstractFunctionalTestCase
      * Example #1 Basic oci_connect() using Easy Connect syntax
      *
      * Note: This is just testing the connection itself, it is not checking if you are using the "Easy Connect" syntax.
+     *
+     * @group php_examples
      */
     public function test_oci_pconnect_example_1()
     {
@@ -312,6 +320,8 @@ class PhpManualOciExamplesTest extends AbstractFunctionalTestCase
 
     /**
      * Example #2 oci_parse() example for PL/SQL statements
+     *
+     * @group php_examples
      */
     public function test_oci_parse_example_2()
     {
@@ -358,6 +368,8 @@ class PhpManualOciExamplesTest extends AbstractFunctionalTestCase
 
     /**
      * Example #2 oci_execute() without specifying a mode example
+     *
+     * @group php_examples
      */
     public function test_oci_execute_example_2()
     {
@@ -375,6 +387,8 @@ class PhpManualOciExamplesTest extends AbstractFunctionalTestCase
 
     /**
      * Example #3 oci_execute() with OCI_NO_AUTO_COMMIT example
+     *
+     * @group php_examples
      */
     public function test_oci_execute_example_3()
     {
@@ -417,6 +431,8 @@ class PhpManualOciExamplesTest extends AbstractFunctionalTestCase
 
     /**
      * Example #5 oci_execute() with OCI_DESCRIBE_ONLY example
+     *
+     * @group php_examples
      */
     public function test_oci_execute_example_5()
     {
@@ -450,6 +466,8 @@ class PhpManualOciExamplesTest extends AbstractFunctionalTestCase
 
     /**
      * Example #1 Inserting data with oci_bind_by_name()
+     *
+     * @group php_examples
      */
     public function test_oci_bind_by_name_example_1()
     {
@@ -472,6 +490,8 @@ class PhpManualOciExamplesTest extends AbstractFunctionalTestCase
 
     /**
      * Example #2 Binding once for multiple
+     *
+     * @group php_examples
      */
     public function test_oci_bind_by_name_example_2()
     {
@@ -511,6 +531,8 @@ class PhpManualOciExamplesTest extends AbstractFunctionalTestCase
 
     /**
      * Example #3 Binding with a foreach() loop
+     *
+     * @group php_examples
      */
     public function test_oci_bind_by_name_example_3()
     {
@@ -541,6 +563,8 @@ class PhpManualOciExamplesTest extends AbstractFunctionalTestCase
 
     /**
      * Example #4 Binding in a WHERE clause
+     *
+     * @group php_examples
      */
     public function test_oci_bind_by_name_example_4()
     {
@@ -561,6 +585,8 @@ class PhpManualOciExamplesTest extends AbstractFunctionalTestCase
 
     /**
      * Example #5 Binding with a LIKE clause
+     *
+     * @group php_examples
      */
     public function test_oci_bind_by_name_example_5()
     {
@@ -582,6 +608,8 @@ class PhpManualOciExamplesTest extends AbstractFunctionalTestCase
 
     /**
      * Example #6 Binding with REGEXP_LIKE
+     *
+     * @group php_examples
      */
     public function test_oci_bind_by_name_example_6()
     {
@@ -603,6 +631,8 @@ class PhpManualOciExamplesTest extends AbstractFunctionalTestCase
 
     /**
      * Example #7 Binding Multiple Values in an IN Clause
+     *
+     * @group php_examples
      */
     public function test_oci_bind_by_name_example_7()
     {
@@ -626,6 +656,8 @@ class PhpManualOciExamplesTest extends AbstractFunctionalTestCase
 
     /**
      * Example #8 Binding a ROWID returned by a query
+     *
+     * @group php_examples
      */
     public function test_oci_bind_by_name_example_8()
     {
@@ -671,6 +703,8 @@ class PhpManualOciExamplesTest extends AbstractFunctionalTestCase
 
     /**
      * Example #9 Binding a ROWID on INSERT
+     *
+     * @group php_examples
      */
     public function test_oci_bind_by_name_example_9()
     {
@@ -739,6 +773,8 @@ class PhpManualOciExamplesTest extends AbstractFunctionalTestCase
 
     /**
      * Example #10 Binding for a PL/SQL stored function
+     *
+     * @group php_examples
      */
     public function test_oci_bind_by_name_example_10()
     {
@@ -761,6 +797,8 @@ class PhpManualOciExamplesTest extends AbstractFunctionalTestCase
 
     /**
      * Example #11 Binding parameters for a PL/SQL stored procedure
+     *
+     * @group php_examples
      */
     public function test_oci_bind_by_name_example_11()
     {
@@ -783,6 +821,8 @@ class PhpManualOciExamplesTest extends AbstractFunctionalTestCase
 
     /**
      * Example #12 Binding a CLOB column
+     *
+     * @group php_examples
      */
     public function test_oci_bind_by_name_example_12()
     {
@@ -823,6 +863,8 @@ class PhpManualOciExamplesTest extends AbstractFunctionalTestCase
      * Example #13 Binding a PL/SQL BOOLEAN
      *
      * @TODO Not working. Could be a version problem.
+     *
+     * @group php_examples
      */
     public function ___test_oci_bind_by_name_example_13()
     {
@@ -852,6 +894,8 @@ class PhpManualOciExamplesTest extends AbstractFunctionalTestCase
 
     /**
      * Example #1 oci_bind_array_by_name() example
+     *
+     * @group php_examples
      */
     public function test_oci_bind_array_by_name_example_1()
     {
@@ -867,6 +911,8 @@ class PhpManualOciExamplesTest extends AbstractFunctionalTestCase
 
     /**
      * Example #1 Binding a REF CURSOR in an Oracle stored procedure call
+     *
+     * @group php_examples
      */
     public function test_oci_new_cursor_example_1()
     {
@@ -886,7 +932,7 @@ class PhpManualOciExamplesTest extends AbstractFunctionalTestCase
         $stmt->execute(); // MUST execute statement first
         $curs->execute();
 
-        $names    = $curs->fetchColumnAll();
+        $names    = $curs->fetchAllColumn();
         $expected = $this->getDataSetColumnValues('EMPLOYEES', 'FIRST_NAME', true);
 
         $this->assertSame($expected, $names);
@@ -923,6 +969,8 @@ class PhpManualOciExamplesTest extends AbstractFunctionalTestCase
 
     /**
      * Example #1 oci_num_rows() example
+     *
+     * @group php_examples
      */
     public function test_oci_num_rows_example_1()
     {
@@ -959,6 +1007,8 @@ class PhpManualOciExamplesTest extends AbstractFunctionalTestCase
 
     /**
      * Example #1 oci_num_fields() example
+     *
+     * @group php_examples
      */
     public function test_oci_num_fields_example_1()
     {
@@ -992,6 +1042,8 @@ class PhpManualOciExamplesTest extends AbstractFunctionalTestCase
 
     /**
      * Example #1 oci_fetch_array() with OCI_BOTH
+     *
+     * @group php_examples
      */
     public function test_oci_fetch_array_example_1()
     {
@@ -1007,6 +1059,8 @@ class PhpManualOciExamplesTest extends AbstractFunctionalTestCase
 
     /**
      * Example #2 oci_fetch_array() with OCI_NUM
+     *
+     * @group php_examples
      */
     public function test_oci_fetch_array_example_2()
     {
@@ -1033,6 +1087,8 @@ class PhpManualOciExamplesTest extends AbstractFunctionalTestCase
 
     /**
      * Example #2 oci_fetch_array() with OCI_ASSOC
+     *
+     * @group php_examples
      */
     public function test_oci_fetch_array_example_3()
     {
@@ -1059,6 +1115,8 @@ class PhpManualOciExamplesTest extends AbstractFunctionalTestCase
 
     /**
      * Example #4 oci_fetch_array() with OCI_RETURN_NULLS
+     *
+     * @group php_examples
      */
     public function test_oci_fetch_array_example_4()
     {
@@ -1089,6 +1147,7 @@ class PhpManualOciExamplesTest extends AbstractFunctionalTestCase
     /**
      * Example #6 oci_fetch_array() with case sensitive column names
      *
+     * @group php_examples
      * @group new
      */
     public function test_oci_fetch_array_example_6()
