@@ -21,28 +21,29 @@ namespace Develpup\Oci;
 class OciStatement extends OciCursor
 {
     /**
+     * @var string
+     */
+    protected $sql;
+
+    /**
      * @var OciParameter[]
      */
     protected $paramMap = array();
 
     /**
-     * @var bool
+     * @var callable[]
      */
-    private $bound = false;
-
-    /**
-     * @var array[]
-     */
-    private $afterExecute = array();
+    private $postExecute = array();
 
     /**
      * @param OciConnection $connection
-     * @param string        $statement
+     * @param string        $sql
      */
-    public function __construct(OciConnection $connection, $statement)
+    public function __construct(OciConnection $connection, $sql)
     {
         $this->connection = $connection;
-        $this->resource   = oci_parse($connection->getResource(), $statement);
+        $this->sql        = $sql;
+        $this->resource   = oci_parse($connection->getResource(), $sql);
 
         $this->assertValidResource();
     }
@@ -50,7 +51,7 @@ class OciStatement extends OciCursor
     /**
      * @param string $name
      *
-     * @return OciParameter
+     * @return Contract\OciBindToInterface
      */
     public function bind($name)
     {
@@ -76,7 +77,7 @@ class OciStatement extends OciCursor
 
         $result = parent::execute();
 
-        foreach ($this->afterExecute as $callback) {
+        foreach ($this->postExecute as $callback) {
             call_user_func($callback);
         }
 
@@ -104,16 +105,24 @@ class OciStatement extends OciCursor
      * @param string   $name
      * @param callable $callback
      */
-    public function afterExecute($name, $callback)
+    public function onPostExecute($name, $callback)
     {
-        $this->afterExecute[$name] = $callback;
+        $this->postExecute[$name] = $callback;
     }
 
     /**
      * @param string $name
      */
-    public function clearAfterExecute($name)
+    public function offPostExecute($name)
     {
-        unset($this->afterExecute[$name]);
+        unset($this->postExecute[$name]);
+    }
+
+    /**
+     * @param Contract\OciStatementVisitorInterface $visitor
+     */
+    public function accept(Contract\OciStatementVisitorInterface $visitor)
+    {
+        $visitor->visitStatement($this->resource, $this->sql, $this->paramMap);
     }
 }

@@ -26,7 +26,7 @@ namespace Develpup\Oci;
  * @author  Jason Hofer <jason.hofer@gmail.com>
  * 2015-03-22 7:40 PM
  */
-class OciParameter
+class OciParameter implements Contract\OciBindToInterface, Contract\OciBindAsInterface
 {
     /**
      * @var OciStatement
@@ -86,7 +86,7 @@ class OciParameter
     /**
      * @param mixed $val
      *
-     * @return $this
+     * @return Contract\OciBindAsInterface
      */
     public function toValue($val)
     {
@@ -100,7 +100,7 @@ class OciParameter
     /**
      * @param mixed &$var
      *
-     * @return $this
+     * @return Contract\OciBindAsInterface
      */
     public function toVar(&$var)
     {
@@ -113,99 +113,71 @@ class OciParameter
 
     /**
      * @param int $size
-     *
-     * @return $this
      */
     public function asString($size = -1)
     {
         $this->setType(SQLT_CHR);
         $this->size = (int) $size;
-
-        return $this;
     }
 
     /**
      * @param int $size
-     *
-     * @return $this
      */
     public function asInt($size = -1)
     {
         $this->setType(OCI_B_INT);
         $this->size = (int) $size;
-
-        return $this;
     }
 
     /**
-     * @return $this
+     *
      */
     public function asBool()
     {
         $this->setType(OCI_B_BOL);
-
-        return $this;
     }
 
     /**
      * @param int $size
-     *
-     * @return $this
      */
     public function asLong($size = -1)
     {
         $this->setType(SQLT_LNG);
         $this->size = (int) $size;
-
-        return $this;
     }
 
     /**
      * @param int $size
-     *
-     * @return $this
      */
     public function asClob($size = -1)
     {
         $this->setType(OCI_B_CLOB);
         $this->size = (int) $size;
-
-        return $this;
     }
 
     /**
      * @param int $size
-     *
-     * @return $this
      */
     public function asBlob($size = -1)
     {
         $this->setType(OCI_B_BLOB);
         $this->size = (int) $size;
-
-        return $this;
     }
 
     /**
-     * @return $this
+     *
      */
     public function asCursor()
     {
         $this->setType(OCI_B_CURSOR);
-
-        return $this;
     }
 
     /**
-     * @return $this
      *
-     * @throws OciException
      */
     public function asRowId()
     {
         $this->setType(OCI_B_ROWID);
-
-        return $this;
     }
 
     /**
@@ -274,11 +246,11 @@ class OciParameter
                 }
 
                 if ($this->byReference) {
-                    $this->statement->clearAfterExecute($this->name);
+                    $this->statement->offPostExecute($this->name);
                     $this->variable = $this->lob;
                 } else {
                     $self = $this;
-                    $this->statement->afterExecute($this->name, function () use ($self) {
+                    $this->statement->onPostExecute($this->name, function () use ($self) {
                         $self->lob->save($self->value);
                     });
                 }
@@ -304,5 +276,13 @@ class OciParameter
             $this->size,
             $this->type
         );
+    }
+
+    /**
+     * @param Contract\OciParameterVisitorInterface $visitor
+     */
+    public function accept(Contract\OciParameterVisitorInterface $visitor)
+    {
+        $visitor->visitParameter($this->name, $this->byReference, $this->variable, $this->value, $this->type);
     }
 }

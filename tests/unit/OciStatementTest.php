@@ -20,13 +20,13 @@ namespace Develpup\Test\Oci;
  */
 class OciStatementTest extends AbstractUnitTestCase
 {
-    public function testBindReturnsOciParameter()
+    public function testBindMethodReturnTypes()
     {
         $conn = $this->ociConnect();
-        $stmt = $conn->prepare('SELECT * FROM employees WHERE job_id = :job_id');
+        $stmt = $conn->prepare('SELECT * FROM employees WHERE job_id IN (:p1, :p2)');
 
-        $this->assertInstanceOf('Develpup\Oci\OciParameter', $stmt->bind('job_id')->toValue('ST_CLERK')->asString());
-
-        $stmt->execute();
+        $this->assertInstanceOf('Develpup\Oci\Contract\OciBindToInterface', $stmt->bind('p1'));
+        $this->assertInstanceOf('Develpup\Oci\Contract\OciBindAsInterface', $stmt->bind('p1')->toValue(1));
+        $this->assertInstanceOf('Develpup\Oci\Contract\OciBindAsInterface', $stmt->bind('p2')->toVar($p2));
     }
 }
