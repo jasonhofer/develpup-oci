@@ -1,8 +1,8 @@
 {
-    "name": "jasonhofer/develpup-oci",
+    "name": "develpup/oci",
     "type": "library",
     "description": "A lightweight wrapper around the PHP OCI8 extension.",
-    "keywords": [],
+    "keywords": ["php", "oci8", "oracle"],
     "homepage": "https://www.github.com/jasonhofer/develpup-oci",
     "license": "MIT",
     "authors": [
@@ -25,7 +25,7 @@
     "autoload": {
         "psr-4": {
             "Develpup\\Oci\\": "src/",
-            "Develpup\\TestUtils\\": "tests/lib"
+            "Develpup\\TestUtils\\": "tests/lib/"
         }
     }
 }
