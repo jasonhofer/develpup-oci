@@ -28,22 +28,22 @@ class OciConnection extends AbstractOciResource
     /**
      * @param string      $username
      * @param string      $password
-     * @param string      $dsn
+     * @param string      $db Connection string
      * @param string|null $charset
      * @param int|null    $sessionMode
      * @param bool        $persistent
      *
      * @throws OciException
      */
-    public function __construct($username, $password, $dsn, $charset = null, $sessionMode = null, $persistent = false)
+    public function __construct($username, $password, $db, $charset = null, $sessionMode = null, $persistent = false)
     {
         if (!defined('OCI_NO_AUTO_COMMIT')) {
-            define('OCI_NO_AUTO_COMMIT', OCI_DEFAULT);
+            define('OCI_NO_AUTO_COMMIT', OCI_DEFAULT); // For PHP < 5.3.2
         }
 
         $this->resource = $persistent ?
-            @oci_pconnect($username, $password, $dsn, $charset, $sessionMode ?: OCI_DEFAULT) :
-            @oci_connect($username, $password, $dsn, $charset, $sessionMode ?: OCI_DEFAULT);
+            @oci_pconnect($username, $password, $db, $charset, $sessionMode ?: OCI_DEFAULT) :
+            @oci_connect($username, $password, $db, $charset, $sessionMode ?: OCI_DEFAULT);
 
         $this->assertValidResource();
     }

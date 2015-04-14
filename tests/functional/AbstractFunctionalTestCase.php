@@ -12,6 +12,7 @@
 namespace Develpup\Test\Oci;
 
 use Develpup\Oci\OciConnection;
+use Develpup\Oci\OciDriver;
 use PHPUnit_Extensions_Database_DataSet_IDataSet;
 use PHPUnit_Extensions_Database_TestCase;
 
@@ -62,6 +63,16 @@ abstract class AbstractFunctionalTestCase extends PHPUnit_Extensions_Database_Te
     }
 
     /**
+     * @return OciDriver
+     */
+    private function ociDriver()
+    {
+        static $ociDriver;
+
+        return $ociDriver ?: ($ociDriver = new OciDriver());
+    }
+
+    /**
      * @return OciConnection
      */
     protected function ociConnect()
@@ -80,13 +91,19 @@ abstract class AbstractFunctionalTestCase extends PHPUnit_Extensions_Database_Te
      */
     protected function ociNewConnect($charset = null, $sessionMode = null, $persistent = false)
     {
-        return new OciConnection(
+        $params = array(
+            'url'         => $GLOBALS['DB_DSN'],
+            'host'        => $GLOBALS['DB_HOST'],
+            'dbname'      => $GLOBALS['DB_NAME'],
+            'charset'     => $charset,
+            'sessionMode' => $sessionMode,
+            'persistent'  => $persistent,
+        );
+
+        return $this->ociDriver()->connect(
+            $params,
             $GLOBALS['DB_USER'],
-            $GLOBALS['DB_PASS'],
-            $GLOBALS['DB_DSN'] ?: $GLOBALS['DB_HOST'] . '/' . $GLOBALS['DB_NAME'],
-            $charset,
-            $sessionMode,
-            $persistent
+            $GLOBALS['DB_PASS']
         );
     }
 
