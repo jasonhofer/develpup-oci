@@ -211,8 +211,9 @@ class OciParameter implements Contract\OciBindToInterface, Contract\OciBindAsInt
             case OCI_B_CURSOR:
                 $this->variable = new OciCursor($this->statement->getConnection());
                 $this->size     = -1;
+                $resource       = $this->variable->getResource();
 
-                return $this->bindTo($this->variable->getResource());
+                return $this->bindTo($resource);
 
             case OCI_B_ROWID:
                 if ($this->lob instanceof OciRowId) {
@@ -230,8 +231,9 @@ class OciParameter implements Contract\OciBindToInterface, Contract\OciBindAsInt
                 }
 
                 $this->size = -1;
+                $resource   = $this->lob->getResource();
 
-                return $this->bindTo($this->lob->getResource());
+                return $this->bindTo($resource);
 
             case OCI_B_CLOB:
             case OCI_B_BLOB:
@@ -255,10 +257,20 @@ class OciParameter implements Contract\OciBindToInterface, Contract\OciBindAsInt
                     });
                 }
 
-                return ($bound ?: $this->bindTo($this->lob->getResource()));
+                if ($bound) {
+                    return $bound;
+                }
+
+                $resource = $this->lob->getResource();
+
+                return $this->bindTo($resource);
 
             default:
-                return $this->bindTo($this->byReference ? $this->variable : $this->value);
+                if ($this->byReference) {
+                    return $this->bindTo($this->variable);
+                }
+
+                return $this->bindTo($this->value);
         }
     }
 
