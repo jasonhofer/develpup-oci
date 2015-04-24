@@ -27,11 +27,12 @@ class OciCursor extends AbstractOciResource
 
     /**
      * @param OciConnection $connection
+     * @param resource      $resource
      */
-    public function __construct(OciConnection $connection)
+    public function __construct(OciConnection $connection, $resource = null)
     {
         $this->connection = $connection;
-        $this->resource   = oci_new_cursor($connection->getResource());
+        $this->resource   = ($resource ? $resource : oci_new_cursor($connection->getResource()));
 
         $this->assertValidResource();
     }
