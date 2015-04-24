@@ -38,11 +38,6 @@ interface OciBindAsInterface
     /**
      * @param int $size
      */
-    public function asLong($size = -1);
-
-    /**
-     * @param int $size
-     */
     public function asClob($size = -1);
 
     /**

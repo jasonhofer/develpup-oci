@@ -74,6 +74,11 @@ class OciParameter implements Contract\OciBindToInterface, Contract\OciBindAsInt
     protected $bound = false;
 
     /**
+     * @var string
+     */
+    protected $castTo;
+
+    /**
      * @param OciStatement $statement
      * @param string       $name
      */
@@ -117,7 +122,8 @@ class OciParameter implements Contract\OciBindToInterface, Contract\OciBindAsInt
     public function asString($size = -1)
     {
         $this->setType(SQLT_CHR);
-        $this->size = (int) $size;
+        $this->size   = (int) $size;
+        $this->castTo = 'string';
     }
 
     /**
@@ -126,7 +132,8 @@ class OciParameter implements Contract\OciBindToInterface, Contract\OciBindAsInt
     public function asInt($size = -1)
     {
         $this->setType(OCI_B_INT);
-        $this->size = (int) $size;
+        $this->size   = (int) $size;
+        $this->castTo = 'int';
     }
 
     /**
@@ -135,15 +142,7 @@ class OciParameter implements Contract\OciBindToInterface, Contract\OciBindAsInt
     public function asBool()
     {
         $this->setType(OCI_B_BOL);
-    }
-
-    /**
-     * @param int $size
-     */
-    public function asLong($size = -1)
-    {
-        $this->setType(SQLT_LNG);
-        $this->size = (int) $size;
+        $this->castTo = 'bool';
     }
 
     /**
@@ -281,6 +280,8 @@ class OciParameter implements Contract\OciBindToInterface, Contract\OciBindAsInt
      */
     protected function bindTo(&$value)
     {
+        $this->castTo and settype($value, $this->castTo);
+
         return oci_bind_by_name(
             $this->statement->getResource(),
             $this->name,
