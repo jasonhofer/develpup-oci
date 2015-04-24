@@ -22,26 +22,34 @@ interface OciBindAsInterface
 {
     /**
      * @param int $size
+     *
+     * @return OciAllowNullInterface
      */
     public function asString($size = -1);
 
     /**
      * @param int $size
+     *
+     * @return OciAllowNullInterface
      */
     public function asInt($size = -1);
 
     /**
-     *
+     * @return OciAllowNullInterface
      */
     public function asBool();
 
     /**
      * @param int $size
+     *
+     * @return OciAllowNullInterface
      */
     public function asClob($size = -1);
 
     /**
      * @param int $size
+     *
+     * @return OciAllowNullInterface
      */
     public function asBlob($size = -1);
 
