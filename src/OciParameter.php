@@ -26,7 +26,7 @@ namespace Develpup\Oci;
  * @author  Jason Hofer <jason.hofer@gmail.com>
  * 2015-03-22 7:40 PM
  */
-class OciParameter implements Contract\OciBindToInterface, Contract\OciBindAsInterface
+class OciParameter implements Contract\OciBindToInterface, Contract\OciBindAsInterface, Contract\OciAllowNullInterface
 {
     /**
      * @var OciStatement
@@ -79,6 +79,11 @@ class OciParameter implements Contract\OciBindToInterface, Contract\OciBindAsInt
     protected $castTo;
 
     /**
+     * @var bool
+     */
+    protected $allowNull = false;
+
+    /**
      * @param OciStatement $statement
      * @param string       $name
      */
@@ -118,49 +123,67 @@ class OciParameter implements Contract\OciBindToInterface, Contract\OciBindAsInt
 
     /**
      * @param int $size
+     *
+     * @return Contract\OciAllowNullInterface
      */
     public function asString($size = -1)
     {
         $this->setType(SQLT_CHR);
         $this->size   = (int) $size;
         $this->castTo = 'string';
+
+        return $this;
     }
 
     /**
      * @param int $size
+     *
+     * @return Contract\OciAllowNullInterface
      */
     public function asInt($size = -1)
     {
         $this->setType(OCI_B_INT);
         $this->size   = (int) $size;
         $this->castTo = 'int';
+
+        return $this;
     }
 
     /**
-     *
+     * @return Contract\OciAllowNullInterface
      */
     public function asBool()
     {
         $this->setType(OCI_B_BOL);
         $this->castTo = 'bool';
+
+        return $this;
     }
 
     /**
      * @param int $size
+     *
+     * @return Contract\OciAllowNullInterface
      */
     public function asClob($size = -1)
     {
         $this->setType(OCI_B_CLOB);
         $this->size = (int) $size;
+
+        return $this;
     }
 
     /**
      * @param int $size
+     *
+     * @return Contract\OciAllowNullInterface
      */
     public function asBlob($size = -1)
     {
         $this->setType(OCI_B_BLOB);
         $this->size = (int) $size;
+
+        return $this;
     }
 
     /**
@@ -177,6 +200,14 @@ class OciParameter implements Contract\OciBindToInterface, Contract\OciBindAsInt
     public function asRowId()
     {
         $this->setType(OCI_B_ROWID);
+    }
+
+    /**
+     *
+     */
+    public function allowNull()
+    {
+        $this->allowNull = true;
     }
 
     /**
@@ -280,7 +311,9 @@ class OciParameter implements Contract\OciBindToInterface, Contract\OciBindAsInt
      */
     protected function bindTo(&$value)
     {
-        $this->castTo and settype($value, $this->castTo);
+        if ($this->castTo && !($this->allowNull && null === $value)) {
+            settype($value, $this->castTo);
+        }
 
         return oci_bind_by_name(
             $this->statement->getResource(),
