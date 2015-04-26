@@ -899,7 +899,60 @@ class PhpManualOciExamplesTest extends AbstractFunctionalTestCase
      */
     public function test_oci_bind_array_by_name_example_1()
     {
-        $this->markTestIncomplete('@TODO implement');
+        $this->dropTableIfExists('bind_example');
+        $this->dropPackageIfExists('ARRAY_BIND_PKG_1');
+        $pdo = $this->getConnection()->getConnection();
+        $pdo->exec('CREATE TABLE bind_example (item_name VARCHAR(20))');
+        $pdo->exec('
+            CREATE OR REPLACE PACKAGE ARRAY_BIND_PKG_1 AS
+                TYPE ARR_TYPE IS TABLE OF VARCHAR(20) INDEX BY BINARY_INTEGER;
+                PROCEDURE io_bind(items IN OUT ARR_TYPE);
+            END ARRAY_BIND_PKG_1;
+        ');
+        $pdo->exec('
+            CREATE OR REPLACE PACKAGE BODY ARRAY_BIND_PKG_1 AS
+                CURSOR my_cursor IS SELECT item_name FROM bind_example;
+                PROCEDURE io_bind(items IN OUT ARR_TYPE) IS BEGIN
+                    -- Bulk Insert
+                    FORALL i IN INDICES OF items
+                        INSERT INTO bind_example VALUES (items(i));
+
+                    -- Fetch and reverse
+                    IF NOT my_cursor%ISOPEN THEN
+                        OPEN my_cursor;
+                    END IF;
+                    FOR i IN REVERSE 1..5 LOOP
+                        FETCH my_cursor INTO items(i);
+                        IF my_cursor%NOTFOUND THEN
+                            CLOSE my_cursor;
+                            EXIT;
+                        END IF;
+                    END LOOP;
+                END io_bind;
+            END ARRAY_BIND_PKG_1;
+        ');
+
+        $this->assertTableRowCount('bind_example', 0);
+
+        $conn  = $this->ociConnect();
+        $stmt  = $conn->prepare('BEGIN array_bind_pkg_1.io_bind(:items); END;');
+
+        $items    = array('one', 'two', 'three', 'four', 'five');
+        $expected = array('one', 'two', 'three', 'four', 'five');
+        $stmt->bind('items')->toVar($items)->asArray()->ofStrings();
+        $stmt->execute();
+
+        $this->assertTableRowCount('bind_example', count($items));
+
+        // The stored procedure should have reversed the actual array:
+        $this->assertSame(array_reverse($expected), $items);
+
+        $results = $conn->query('SELECT item_name FROM bind_example')->fetchAllColumn();
+
+        $this->assertSame($expected, $results);
+
+        $this->dropPackageIfExists('ARRAY_BIND_PKG_1');
+        $this->dropTableIfExists('bind_example');
     }
 
 
@@ -1148,7 +1201,6 @@ class PhpManualOciExamplesTest extends AbstractFunctionalTestCase
      * Example #6 oci_fetch_array() with case sensitive column names
      *
      * @group php_examples
-     * @group new
      */
     public function test_oci_fetch_array_example_6()
     {

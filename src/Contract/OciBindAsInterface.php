@@ -21,18 +21,18 @@ namespace Develpup\Oci\Contract;
 interface OciBindAsInterface
 {
     /**
-     * @param int $size
+     * @param int $maxSize
      *
      * @return OciAllowNullInterface
      */
-    public function asString($size = -1);
+    public function asString($maxSize = -1);
 
     /**
-     * @param int $size
+     * @param int $maxSize
      *
      * @return OciAllowNullInterface
      */
-    public function asInt($size = -1);
+    public function asInt($maxSize = -1);
 
     /**
      * @return OciAllowNullInterface
@@ -40,18 +40,18 @@ interface OciBindAsInterface
     public function asBool();
 
     /**
-     * @param int $size
+     * @param int $maxSize
      *
      * @return OciAllowNullInterface
      */
-    public function asClob($size = -1);
+    public function asClob($maxSize = -1);
 
     /**
-     * @param int $size
+     * @param int $maxSize
      *
      * @return OciAllowNullInterface
      */
-    public function asBlob($size = -1);
+    public function asBlob($maxSize = -1);
 
     /**
      *
@@ -62,4 +62,9 @@ interface OciBindAsInterface
      *
      */
     public function asRowId();
+
+    /**
+     * @return OciBindAsArrayInterface
+     */
+    public function asArray();
 }

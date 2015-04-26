@@ -26,6 +26,7 @@ interface OciParameterVisitorInterface
      * @param mixed  $variable
      * @param mixed  $value
      * @param int    $type
+     * @param bool   $bindAsArray
      */
-    public function visitParameter($name, $byReference, &$variable, $value, $type);
+    public function visitParameter($name, $byReference, &$variable, $value, $type, $bindAsArray);
 }

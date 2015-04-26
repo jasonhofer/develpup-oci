@@ -26,7 +26,11 @@ namespace Develpup\Oci;
  * @author  Jason Hofer <jason.hofer@gmail.com>
  * 2015-03-22 7:40 PM
  */
-class OciParameter implements Contract\OciBindToInterface, Contract\OciBindAsInterface, Contract\OciAllowNullInterface
+class OciParameter implements
+    Contract\OciBindToInterface,
+    Contract\OciBindAsInterface,
+    Contract\OciAllowNullInterface,
+    Contract\OciBindAsArrayInterface
 {
     /**
      * @var OciStatement
@@ -66,7 +70,7 @@ class OciParameter implements Contract\OciBindToInterface, Contract\OciBindAsInt
     /**
      * @var int
      */
-    protected $size = -1;
+    protected $maxSize = -1;
 
     /**
      * @var bool
@@ -82,6 +86,16 @@ class OciParameter implements Contract\OciBindToInterface, Contract\OciBindAsInt
      * @var bool
      */
     protected $allowNull = false;
+
+    /**
+     * @var boolean
+     */
+    protected $bindAsArray = false;
+
+    /**
+     * @var int
+     */
+    protected $maxArraySize;
 
     /**
      * @param OciStatement $statement
@@ -122,28 +136,26 @@ class OciParameter implements Contract\OciBindToInterface, Contract\OciBindAsInt
     }
 
     /**
-     * @param int $size
+     * @param int $maxSize
      *
      * @return Contract\OciAllowNullInterface
      */
-    public function asString($size = -1)
+    public function asString($maxSize = -1)
     {
-        $this->setType(SQLT_CHR);
-        $this->size   = (int) $size;
+        $this->setTypeAndMaxSize(SQLT_CHR, $maxSize);
         $this->castTo = 'string';
 
         return $this;
     }
 
     /**
-     * @param int $size
+     * @param int $maxSize
      *
      * @return Contract\OciAllowNullInterface
      */
-    public function asInt($size = -1)
+    public function asInt($maxSize = -1)
     {
-        $this->setType(OCI_B_INT);
-        $this->size   = (int) $size;
+        $this->setTypeAndMaxSize(OCI_B_INT, $maxSize);
         $this->castTo = 'int';
 
         return $this;
@@ -154,34 +166,32 @@ class OciParameter implements Contract\OciBindToInterface, Contract\OciBindAsInt
      */
     public function asBool()
     {
-        $this->setType(OCI_B_BOL);
+        $this->setTypeAndMaxSize(OCI_B_BOL, -1);
         $this->castTo = 'bool';
 
         return $this;
     }
 
     /**
-     * @param int $size
+     * @param int $maxSize
      *
      * @return Contract\OciAllowNullInterface
      */
-    public function asClob($size = -1)
+    public function asClob($maxSize = -1)
     {
-        $this->setType(OCI_B_CLOB);
-        $this->size = (int) $size;
+        $this->setTypeAndMaxSize(OCI_B_CLOB, $maxSize);
 
         return $this;
     }
 
     /**
-     * @param int $size
+     * @param int $maxSize
      *
      * @return Contract\OciAllowNullInterface
      */
-    public function asBlob($size = -1)
+    public function asBlob($maxSize = -1)
     {
-        $this->setType(OCI_B_BLOB);
-        $this->size = (int) $size;
+        $this->setTypeAndMaxSize(OCI_B_BLOB, $maxSize);
 
         return $this;
     }
@@ -191,7 +201,7 @@ class OciParameter implements Contract\OciBindToInterface, Contract\OciBindAsInt
      */
     public function asCursor()
     {
-        $this->setType(OCI_B_CURSOR);
+        $this->setTypeAndMaxSize(OCI_B_CURSOR, -1);
     }
 
     /**
@@ -199,7 +209,36 @@ class OciParameter implements Contract\OciBindToInterface, Contract\OciBindAsInt
      */
     public function asRowId()
     {
-        $this->setType(OCI_B_ROWID);
+        $this->setTypeAndMaxSize(OCI_B_ROWID, -1);
+    }
+
+    /**
+     * @param int $maxSize
+     *
+     * @return $this Contract\OciAsArrayInterface
+     */
+    public function asArray($maxSize = 0)
+    {
+        $this->bindAsArray  = true;
+        $this->maxArraySize = (int) $maxSize;
+
+        return $this;
+    }
+
+    /**
+     * @param int $maxSize
+     */
+    public function ofInts($maxSize = -1)
+    {
+        $this->asInt($maxSize);
+    }
+
+    /**
+     * @param int $maxSize
+     */
+    public function ofStrings($maxSize = -1)
+    {
+        $this->asString($maxSize);
     }
 
     /**
@@ -212,16 +251,18 @@ class OciParameter implements Contract\OciBindToInterface, Contract\OciBindAsInt
 
     /**
      * @param int $type
+     * @param int $maxSize
      *
      * @throws OciException
      */
-    protected function setType($type)
+    protected function setTypeAndMaxSize($type, $maxSize)
     {
         if (is_int($this->type) && $this->type !== $type) {
             throw new OciException('Cannot change parameter type after it has been defined.');
         }
 
-        $this->type = $type;
+        $this->type    = $type;
+        $this->maxSize = (int) $maxSize;
     }
 
     /**
@@ -240,7 +281,7 @@ class OciParameter implements Contract\OciBindToInterface, Contract\OciBindAsInt
         switch ($this->type) {
             case OCI_B_CURSOR:
                 $this->variable = new OciCursor($this->statement->getConnection());
-                $this->size     = -1;
+                $this->maxSize  = -1;
                 $resource       = $this->variable->getResource();
 
                 return $this->bindTo($resource);
@@ -260,8 +301,8 @@ class OciParameter implements Contract\OciBindToInterface, Contract\OciBindAsInt
                     $this->variable = $this->lob;
                 }
 
-                $this->size = -1;
-                $resource   = $this->lob->getResource();
+                $this->maxSize = -1;
+                $resource      = $this->lob->getResource();
 
                 return $this->bindTo($resource);
 
@@ -288,7 +329,7 @@ class OciParameter implements Contract\OciBindToInterface, Contract\OciBindAsInt
                 }
 
                 if ($bound) {
-                    return $bound;
+                    return true;
                 }
 
                 $resource = $this->lob->getResource();
@@ -311,6 +352,17 @@ class OciParameter implements Contract\OciBindToInterface, Contract\OciBindAsInt
      */
     protected function bindTo(&$value)
     {
+        if ($this->bindAsArray) {
+            return oci_bind_array_by_name(
+                $this->statement->getResource(),
+                $this->name,
+                $value,
+                ($this->maxArraySize ?: max(count($value), 1)),
+                $this->maxSize,
+                $this->type
+            );
+        }
+
         if ($this->castTo && !($this->allowNull && null === $value)) {
             settype($value, $this->castTo);
         }
@@ -319,7 +371,7 @@ class OciParameter implements Contract\OciBindToInterface, Contract\OciBindAsInt
             $this->statement->getResource(),
             $this->name,
             $value,
-            $this->size,
+            $this->maxSize,
             $this->type
         );
     }
@@ -329,6 +381,13 @@ class OciParameter implements Contract\OciBindToInterface, Contract\OciBindAsInt
      */
     public function accept(Contract\OciParameterVisitorInterface $visitor)
     {
-        $visitor->visitParameter($this->name, $this->byReference, $this->variable, $this->value, $this->type);
+        $visitor->visitParameter(
+            $this->name,
+            $this->byReference,
+            $this->variable,
+            $this->value,
+            $this->type,
+            $this->bindAsArray
+        );
     }
 }
