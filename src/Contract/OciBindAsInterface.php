@@ -64,7 +64,10 @@ interface OciBindAsInterface
     public function asRowId();
 
     /**
+     * @param int $maxSize
+     *
      * @return OciBindAsArrayInterface
      */
-    public function asArray();
+    public function asArray($maxSize = 0);
 }
+
