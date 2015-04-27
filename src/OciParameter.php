@@ -353,6 +353,8 @@ class OciParameter implements
     protected function bindTo(&$value)
     {
         if ($this->bindAsArray) {
+            settype($value, 'array');
+
             return oci_bind_array_by_name(
                 $this->statement->getResource(),
                 $this->name,
