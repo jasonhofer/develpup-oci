@@ -100,7 +100,7 @@ class OciCursor extends AbstractOciResource
 
         $results = array();
 
-        if (!oci_fetch_all($this->resource, $results, $skip, $maxRows, $flags)) {
+        if (false === oci_fetch_all($this->resource, $results, $skip, $maxRows, $flags)) {
             throw OciException::fromErrorInfo($this->errorInfo());
         }
 
