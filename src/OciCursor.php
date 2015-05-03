@@ -46,7 +46,7 @@ class OciCursor extends AbstractOciResource
     {
         $ret = @oci_execute($this->resource, $this->connection->getExecuteMode());
 
-        if (!$ret) {
+        if (false === $ret) {
             throw OciException::fromErrorInfo($this->errorInfo());
         }
 
@@ -157,9 +157,9 @@ class OciCursor extends AbstractOciResource
     }
 
     /**
-     * @param int $position
+     * @param int $position 1-based position of column.
      *
-     * @return string
+     * @return string|false
      */
     public function columnName($position)
     {
@@ -167,9 +167,9 @@ class OciCursor extends AbstractOciResource
     }
 
     /**
-     * @param int $position
+     * @param int $position 1-based position of column.
      *
-     * @return string
+     * @return string|false
      */
     public function columnType($position)
     {
@@ -185,7 +185,7 @@ class OciCursor extends AbstractOciResource
      */
     public function setPrefetch($rows)
     {
-        if (!oci_set_prefetch($this->resource, (int) $rows)) {
+        if (false === oci_set_prefetch($this->resource, (int) $rows)) {
             throw OciException::fromErrorInfo($this->errorInfo());
         }
 

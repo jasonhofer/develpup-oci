@@ -70,8 +70,6 @@ class OciConnection extends AbstractOciResource
      * @param string $sql
      *
      * @return OciStatement
-     *
-     * @throws OciException
      */
     public function query($sql)
     {
@@ -85,8 +83,6 @@ class OciConnection extends AbstractOciResource
      * @param OciStatement $statement
      *
      * @return OciStatement
-     *
-     * @throws OciException
      */
     public function describe(OciStatement $statement)
     {
@@ -101,8 +97,6 @@ class OciConnection extends AbstractOciResource
      * @param string $statement
      *
      * @return int
-     *
-     * @throws OciException
      */
     public function exec($statement)
     {
