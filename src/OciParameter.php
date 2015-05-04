@@ -355,7 +355,7 @@ class OciParameter implements
         if ($this->bindAsArray) {
             settype($value, 'array');
 
-            return oci_bind_array_by_name(
+            return @oci_bind_array_by_name(
                 $this->statement->getResource(),
                 $this->name,
                 $value,
@@ -369,7 +369,7 @@ class OciParameter implements
             settype($value, $this->castTo);
         }
 
-        return oci_bind_by_name(
+        return @oci_bind_by_name(
             $this->statement->getResource(),
             $this->name,
             $value,

@@ -44,7 +44,7 @@ class OciException extends \Exception
     {
         list($message, $code) = self::getErrorInfo($error);
 
-        return new self($message . ': (parameter="' . $parameter . '")', $code);
+        return new self($message . ': "' . $parameter . '"', $code);
     }
 
     /**
