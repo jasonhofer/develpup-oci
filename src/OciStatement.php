@@ -69,9 +69,9 @@ class OciStatement extends OciCursor
      */
     public function execute()
     {
-        foreach ($this->paramMap as $param) {
+        foreach ($this->paramMap as $name => $param) {
             if (!$param->bind()) {
-                throw OciException::fromErrorInfo($this->errorInfo());
+                throw OciException::failedToBindParameter($this->errorInfo(), $name);
             }
         }
 

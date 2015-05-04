@@ -21,16 +21,43 @@ namespace Develpup\Oci;
 class OciException extends \Exception
 {
     /**
-     * @param array $error
+     * @param array|false $error
      *
      * @return OciException
      */
     public static function fromErrorInfo($error)
     {
+        list($message, $code) = self::getErrorInfo($error);
+
+        return new self($message, $code);
+    }
+
+    /**
+     * Make the error "oci_bind_by_name(): ORA-01036: illegal variable name/number" error a lot easier to debug.
+     *
+     * @param array|false $error
+     * @param string      $parameter
+     *
+     * @return OciException
+     */
+    public static function failedToBindParameter($error, $parameter)
+    {
+        list($message, $code) = self::getErrorInfo($error);
+
+        return new self($message . ': (parameter="' . $parameter . '")', $code);
+    }
+
+    /**
+     * @param array|false $error
+     *
+     * @return array
+     */
+    private static function getErrorInfo($error)
+    {
         if (is_array($error)) {
-            return new self($error['message'], $error['code']);
+            return array($error['message'], $error['code']);
         } else {
-            return new self('General OCI failure.');
+            return array('General OCI failure.', null);
         }
     }
 }
