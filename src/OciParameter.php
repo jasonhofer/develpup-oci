@@ -360,7 +360,7 @@ class OciParameter implements
                 $this->name,
                 $value,
                 ($this->maxArraySize ?: max(count($value), 1)),
-                $this->maxSize,
+                (empty($value) ? 0 : $this->maxSize),
                 $this->type
             );
         }
