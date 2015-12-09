@@ -57,7 +57,7 @@ class OciException extends \Exception
         if (is_array($error)) {
             return array($error['message'], $error['code']);
         } else {
-            return array('General OCI failure.', null);
+            return array('Unknown OCI failure.', null);
         }
     }
 }
