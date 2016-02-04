@@ -33,6 +33,11 @@ class OciStatement extends OciCursor
     /**
      * @var callable[]
      */
+    private $preExecute = array();
+
+    /**
+     * @var callable[]
+     */
     private $postExecute = array();
 
     /**
@@ -69,6 +74,10 @@ class OciStatement extends OciCursor
      */
     public function execute()
     {
+        foreach ($this->preExecute as $callback) {
+            call_user_func($callback, $this);
+        }
+
         foreach ($this->paramMap as $name => $param) {
             if (!$param->bind()) {
                 throw OciException::failedToBindParameter($this->errorInfo(), $name);
@@ -78,7 +87,7 @@ class OciStatement extends OciCursor
         $result = parent::execute();
 
         foreach ($this->postExecute as $callback) {
-            call_user_func($callback);
+            call_user_func($callback, $this, $result);
         }
 
         return $result;
@@ -99,6 +108,23 @@ class OciStatement extends OciCursor
         $this->resource = null;
 
         return $closed;
+    }
+
+    /**
+     * @param string   $name
+     * @param callable $callback
+     */
+    public function onPreExecute($name, $callback)
+    {
+        $this->preExecute[$name] = $callback;
+    }
+
+    /**
+     * @param string $name
+     */
+    public function offPreExecute($name)
+    {
+        unset($this->preExecute[$name]);
     }
 
     /**
