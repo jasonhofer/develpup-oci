@@ -365,7 +365,11 @@ class OciParameter implements
             );
         }
 
-        if ($this->castTo && !($this->allowNull && null === $value)) {
+        $type = $this->type;
+
+        if (null === $value && $this->allowNull) {
+            $type = SQLT_CHR;
+        } elseif ($this->castTo) {
             settype($value, $this->castTo);
         }
 
@@ -374,7 +378,7 @@ class OciParameter implements
             $this->name,
             $value,
             $this->maxSize,
-            $this->type
+            $type
         );
     }
 
