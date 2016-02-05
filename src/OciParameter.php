@@ -367,7 +367,7 @@ class OciParameter implements
 
         $type = $this->type;
 
-        if (null === $value && $this->allowNull) {
+        if ($this->allowNull && null === $value) {
             $type = SQLT_CHR;
         } elseif ($this->castTo) {
             settype($value, $this->castTo);
