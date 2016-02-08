@@ -11,6 +11,11 @@
 
 namespace Develpup\Oci;
 
+// Only defined in OCI8 2.0.7 and Oracle Database 12c.
+// See: http://php.net/manual/en/function.oci-bind-by-name.php
+defined('OCI_B_BOL') or define('OCI_B_BOL', 252);
+defined('SQLT_BOL') or define('SQLT_BOL', OCI_B_BOL);
+
 /**
  * Class AbstractOciResource
  *
