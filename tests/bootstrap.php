@@ -10,5 +10,5 @@
  */
 
 require_once __DIR__ . '/../vendor/autoload.php';
-require_once 'functional/AbstractFunctionalTestCase.php';
-require_once 'unit/AbstractUnitTestCase.php';
+require_once __DIR__ . '/functional/AbstractFunctionalTestCase.php';
+require_once __DIR__ . '/unit/AbstractUnitTestCase.php';
